@@ -1,4 +1,5 @@
 'use client'
+import Link from "next/link";
 import { useState } from "react";
 import GameRow from "./components/GameRow";
 
@@ -187,6 +188,7 @@ export default function Home() {
       <hr className="bg-normal-green h-[2px] w-full mt-3"></hr>
 
       {currentGames.map((game) => (
+        <Link href = "/view" className="z-0">
         <GameRow
           key={game.appID}
           appID={game.appID}
@@ -196,6 +198,7 @@ export default function Home() {
           requiredAge={game.requiredAge}
           estimatedOwners={game.estimatedOwners}
         />
+        </Link>
       ))}
 
       <div className="flex justify-center mt-5 space-x-4">

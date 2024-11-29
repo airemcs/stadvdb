@@ -1,7 +1,14 @@
+import Link from 'next/link';
+
 import Image from 'next/image';
 import React from 'react';
 
 const GameRow = ({ appID, gameName, date, price, requiredAge, estimatedOwners }) => {
+
+  const handleClick = () => {
+    alert("Click");
+  }
+
   return (
   <div className='flex items-center justify-between rounded-lg shadow-md p-4 mt-6 hover:bg-opacity-90 outline outline-1'>
   <div className='h-24 font-bold grid grid-cols-7 text-xl w-full'>
@@ -16,7 +23,7 @@ const GameRow = ({ appID, gameName, date, price, requiredAge, estimatedOwners })
     <div className='flex space-x-2'>
     <div className='flex gap-5 items-center'>
 
-      <button className='btn border-none hover:bg-opacity-90 w-24 bg-yellow-500 h-10 flex items-center justify-center rounded outline outline-1'>
+      <Link href="/edit" className='btn border-none hover:bg-opacity-90 w-24 bg-yellow-500 h-10 flex items-center justify-center rounded outline outline-1 z-30'>
         
       <Image
         className='mr-2'
@@ -25,9 +32,9 @@ const GameRow = ({ appID, gameName, date, price, requiredAge, estimatedOwners })
         width={24}
         height={24}
       />
-      </button>
+      </Link>
 
-      <button className='btn border-none hover:bg-opacity-90  w-24 bg-red-500 h-10 flex items-center justify-center rounded outline outline-1'>
+      <button onClick={handleClick} className='btn border-none hover:bg-opacity-90  w-24 bg-red-500 h-10 flex items-center justify-center rounded outline outline-1 z-30'>
         <Image
           className='mr-2'
           src="/DeleteIcon.png"
