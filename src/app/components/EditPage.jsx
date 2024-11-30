@@ -43,7 +43,6 @@ const EditPage = ({appId}) => {
     const updateGame = async() => {
       setLoading(true);
       try {
-        console.log("checking" + appId);
         const response = await fetch(`/api/games`, {
           method: 'PUT',
           headers: {
@@ -158,7 +157,7 @@ const EditPage = ({appId}) => {
   console.log(gameDetails);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-200 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-black-200 p-4">
 
       {/* Form Container */}
       <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg space-y-8">
@@ -176,19 +175,20 @@ const EditPage = ({appId}) => {
           {/* App ID Display */}
           <div className="text-gray-700 text-sm font-medium">
             <span>App ID: </span>
-            <span className="font-bold text-gray-900">{appId}</span>
+            <span className="font-bold text-sm text-gray-900">{appId}</span>
           </div>
         </div>
 
         {/* Form Fields */}
         <div className="space-y-6">
-
           {/* Game and Release Date Group */}
           <div className="flex space-x-6">
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Name: 
+              </div>
               <input 
                 type="text" 
-          
                 value={gameDetails.gamename} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
                   onChange={(e) => 
@@ -200,6 +200,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Released Date: 
+              </div>
               <input 
                 type="date" 
                 value={gameDetails.releaseDate}  
@@ -217,6 +220,9 @@ const EditPage = ({appId}) => {
           {/* Other Form Fields */}
           <div className="flex space-x-6">
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Estimated Owners: 
+              </div>
               <input 
                 type="number" 
                 value={gameDetails.estimatedOwners} 
@@ -230,6 +236,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+            <div className='text-black font-bold'>
+                  Peak CCU: 
+              </div>
               <input 
                 type="number" 
                 value={gameDetails.peakCCU} 
@@ -243,6 +252,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Required Age: 
+              </div>
               <input 
                 type="text" 
                 value={gameDetails.requiredAge}  
@@ -259,6 +271,9 @@ const EditPage = ({appId}) => {
 
           <div className="flex space-x-6">
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Price: 
+              </div>
               <input 
                 type="number" 
                 value={gameDetails.price} 
@@ -272,6 +287,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  DLC Count: 
+              </div>
               <input 
                 type="number" 
                 value={gameDetails.dlcCount}  
@@ -285,6 +303,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Website: 
+              </div>
               <input 
                 type="text" 
                 value={gameDetails.website} 
@@ -301,6 +322,9 @@ const EditPage = ({appId}) => {
 
           <div className="flex space-x-6">
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Support Email: 
+              </div>
               <input 
                 type="email" 
                 value={gameDetails.supportEmail} 
@@ -314,6 +338,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Recommends: 
+              </div>
               <input 
                 type="text" 
                 value={gameDetails.recommends} 
@@ -327,6 +354,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Average Playtime: 
+              </div>
               <input 
                 type="number" 
                 value={gameDetails.averagePlaytime} 
@@ -343,6 +373,9 @@ const EditPage = ({appId}) => {
 
           <div className="flex space-x-6">
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Median Playtime: 
+              </div>
               <input 
                 type="number" 
                 value={gameDetails.medianPlaytime}  
@@ -356,6 +389,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Publishers: 
+              </div>
               <input 
                 type="text" 
                 value={gameDetails.publishers} 
@@ -369,6 +405,9 @@ const EditPage = ({appId}) => {
               />
             </div>
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Genre: 
+              </div>
               <input 
                 type="text" 
                 value={gameDetails.genres}  
@@ -385,6 +424,9 @@ const EditPage = ({appId}) => {
 
           <div className="flex space-x-6">
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Categories: 
+              </div>
               <input 
                 type="text" 
                 value={gameDetails.categories}  
@@ -401,6 +443,9 @@ const EditPage = ({appId}) => {
 
           <div className="flex space-x-6">
             <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Tags: 
+              </div>
               <input 
                 type="text" 
                 value={gameDetails.tags} 
@@ -431,7 +476,7 @@ const EditPage = ({appId}) => {
       {isConfirmOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-lg font-bold text-center mb-4">Are you sure you want to save the changes?</h2>
+            <h2 className="text-lg font-bold text-center mb-4 text-black">Are you sure you want to save the changes?</h2>
             <div className="flex justify-between">
               <button
                 onClick={confirmSave}

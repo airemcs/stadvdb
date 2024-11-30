@@ -131,17 +131,17 @@ export async function PUT(request) {
   }
   
   
-  export async function DELETE() {
-    const { id } = await request.json();
-  
-    try {
-      await prisma.games.delete({
-        where: { id }
-      });
-      
-      return NextResponse.json({ message: 'Game deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
-    }
+export async function DELETE() {
+  const { id } = await request.json();
+
+  try {
+    await prisma.games.delete({
+      where: { id }
+    });
+    
+    return NextResponse.json({ message: 'Game deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
   }
+}
