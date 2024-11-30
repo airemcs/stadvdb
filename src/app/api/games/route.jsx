@@ -15,9 +15,9 @@ export async function GET(request) {
         let currentNode = main_node; 
         if (node === "main_node") {
             currentNode = main_node;
-        } else if (node === "node_1") {
+        } else if (node === "Node1") {
             currentNode = node_1;
-        } else if (node === "node_2") {
+        } else if (node === "Node2") {
             currentNode = node_2;
         }
         if (AppID) filters.AppID = { contains: AppID };

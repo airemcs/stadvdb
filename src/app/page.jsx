@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import GameRow from "./components/GameRow";
 
-export default function Home(node) {
+export default function Home() {
   const [games, setGames] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -12,13 +12,13 @@ export default function Home(node) {
   const [filters, setFilters] = useState({ appId: '', gameName: '', date: '', price: '', requiredAge: '', estimatedOwners: '' });
   const [appliedFilters, setAppliedFilters] = useState({});
   const [totalGames, setTotalGames] = useState("");
-  const [selectedNode, setSelectedNode] = useState("Main Node");
+  const [selectedNode, setSelectedNode] = useState(() => {
+    return localStorage.getItem('selectedNode') || 'main_node';
+  });
+
   const gamesPerPage = 5;
 
   useEffect(() => {
-    if(node){
-      setSelectedNode(node)
-    }
     const fetchGames = async () => {
       setLoading(true);
       try {
@@ -44,7 +44,7 @@ export default function Home(node) {
     };
 
     fetchGames();
-  }, [currentPage, appliedFilters, selectedNode]); // Add selectedNode as a dependency
+  }, [currentPage, appliedFilters, selectedNode]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -56,6 +56,11 @@ export default function Home(node) {
       applyFilters();
     }
   };
+
+  useEffect(() => {
+    localStorage.setItem('selectedNode', selectedNode);
+    localStorage.setItem('currentPage', currentPage);
+  }, [selectedNode, currentPage]);
 
   const applyFilters = () => {
     setAppliedFilters(filters);
@@ -74,6 +79,7 @@ export default function Home(node) {
       setCurrentPage(currentPage - 1);
     }
   };
+  console.log(selectedNode)
 
   return (
     <>
@@ -163,8 +169,7 @@ export default function Home(node) {
 
           {games &&
               games.map((game) => (
-                // eslint-disable-next-line jsx-a11y/anchor-is-valid
-                <Link href={`/view/${game.AppID}?selectedNode=${encodeURIComponent(JSON.stringify(game))}` }>
+                <Link key={game.AppID} href={`/view/${game.AppID}` }>
                   <GameRow
                     appID={game.AppID}
                     gameName={game.Name}

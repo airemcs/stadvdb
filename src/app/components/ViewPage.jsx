@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 
 const ViewPage = ({ AppID }) => {
   const [gameData, setGameData] = useState(null);
-
   const fetchGameData = async () => {
     try {
       const gameId = AppID.id;
