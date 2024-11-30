@@ -6,7 +6,7 @@ import GameRow from "./components/GameRow";
 export default function Home() {
   const [games, setGames] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const gamesPerPage = 3; 
+  const gamesPerPage = 5; 
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -58,14 +58,14 @@ export default function Home() {
           <hr className="bg-normal-green h-[2px] w-full mt-3"></hr>
 
           {games.map((game) => (
-            <Link href="/view" className="z-0" key={game.appID}>
+            <Link href="/view" className="z-0" key={game.AppID}>
               <GameRow
-                appID={game.appID}
-                gameName={game.name}
-                date={game.date}
-                price={game.price}
-                requiredAge={game.requiredAge}
-                estimatedOwners={game.estimatedOwners}
+                appID={game.AppID}
+                gameName={game.Name}
+                date={game.ReleaseDate}
+                price={game.Price}
+                requiredAge={game.RequiredAge}
+                estimatedOwners={game.EstimatedOwners}
               />
             </Link>
           ))}
