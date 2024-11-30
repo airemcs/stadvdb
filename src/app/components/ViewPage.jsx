@@ -114,7 +114,7 @@ const ViewPage = ({ AppID }) => {
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-gray-700 font-semibold text-2xl italic">Website</p>
-              {gameData.Website && <p clas text-lgsName="text-gray-900 break-words">{gameData.Website}</p>}
+              {gameData.Website && <p clas text-lgs className="text-gray-900 break-words">{gameData.Website}</p>}
               {!gameData.Website && <p className="text-gray-900 break-words">NA</p>}
             </div>
             <div>

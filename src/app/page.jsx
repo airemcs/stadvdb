@@ -6,7 +6,7 @@ import GameRow from "./components/GameRow";
 
 export default function Home() {
   const [games, setGames] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => Number(localStorage.getItem('currentPage')) || 1);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState("");
   const [filters, setFilters] = useState({ appId: '', gameName: '', date: '', price: '', requiredAge: '', estimatedOwners: '' });
@@ -50,6 +50,10 @@ export default function Home() {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
+
+  useEffect(() => {
+    localStorage.setItem('currentPage', currentPage);
+  }, [currentPage]);
   
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
