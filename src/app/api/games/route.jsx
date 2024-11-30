@@ -1,102 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../../../prisma/client';
+import { main_node, node_1, node_2 } from '../../../../prisma/client';
 
 export async function GET(request) {
     try {
-      const { searchParams } = new URL(request.url);
-      const AppID = searchParams.get('AppID');
-      console.log(AppID)
-      if (AppID) {
-        const game = await prisma.games.findUnique({
-          where: { AppID: AppID},
-        });
-        if (!game) {
-          return NextResponse.json({ message: 'Game not found' }, { status: 404 });
+        const { searchParams } = new URL(request.url);
+        const AppID = searchParams.get('appId');
+        const gameName = searchParams.get('gameName');
+        const date = searchParams.get('year');
+        const node = searchParams.get('node');
+        const price = searchParams.get('price');
+        const requiredAge = searchParams.get('requiredAge');
+        const estimatedOwners = searchParams.get('estimatedOwners');
+        const filters = {};
+        let currentNode = node_2; 
+        if (node === "main_node") {
+            currentNode = main_node;
+        } else if (node === "node_1") {
+            currentNode = node_1;
+        } else if (node === "node_2") {
+            currentNode = node_2;
         }
-        return NextResponse.json(game);
-      } else {
+
+        if (AppID) filters.AppID = { contains: AppID };
+        if (gameName) filters.Name = { contains: gameName };
+        if (date) {
+            const startOfYear = new Date(`${date}-01-01`).toISOString();
+            const endOfYear = new Date(`${date}-12-31T23:59:59`).toISOString();
+            filters.ReleaseDate = { gte: startOfYear, lt: endOfYear };
+        }
+        if (price) filters.Price = parseFloat(price);
+        if (requiredAge) filters.RequiredAge = parseInt(requiredAge, 10);
+        if (estimatedOwners) filters.EstimatedOwners = { contains: estimatedOwners };
+
+        const count = await currentNode.games.count({ where: filters });
         const page = parseInt(searchParams.get('page'), 10) || 1;
         const limit = parseInt(searchParams.get('limit'), 10) || 50;
         const skip = (page - 1) * limit;
-        const games = await prisma.games.findMany({
-          skip: skip,
-          take: limit,
+
+        const games = await currentNode.games.findMany({
+            where: filters,
+            skip: skip,
+            take: limit,
         });
+
         if (games.length === 0) {
-          return NextResponse.json({ message: 'No games found' }, { status: 404 });
+            return NextResponse.json({ message: 'No games found' }, { status: 404 });
         }
-        return NextResponse.json(games);
-      }
-    }   catch (error) {
+        return NextResponse.json({ count: count, games: games });
+    } catch (error) {
         console.error('Error fetching games:', error.message, error.stack);
         return NextResponse.json({ error: 'Failed to fetch games' }, { status: 500 });
-      }
-  }
-
-export async function POST() {
-  const session = await getServerSession(authOptions);
-  const { description, date, from, to, finished, email } = await request.json();
-
-  if (!session || !email || session.user?.email !== email) {
-    return NextResponse.json({ error: 'Unauthenticated or email mismatch' }, { status: 401 });
-  }
-
-  try {
-    const newEvent = await prisma.event.create({
-      data: {
-        email: email,
-        description,
-        date: new Date(date),
-        from: new Date(from),
-        to: new Date(to),
-        finished,
-      },
-    });
-
-    return NextResponse.json(newEvent, { status: 201 });
-  } catch (error) {
-    console.error('Error creating event:', error);
-    return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
-  }
-}
-
-export async function PUT() {
-  const session = await getServerSession(authOptions);
-  const { id, finished, email } = await request.json();
-
-  if (!session || !email || session.user?.email !== email) {
-    return NextResponse.json({ error: 'Unauthenticated or email mismatch' }, { status: 401 });
-  }
-
-  try {
-    const updatedEvent = await prisma.event.update({
-      where: { id },
-      data: { finished }
-    });
-
-    return NextResponse.json(updatedEvent);
-  } catch (error) {
-    console.error('Error updating event:', error);
-    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
-  }
-}
-
-export async function DELETE() {
-  const session = await getServerSession(authOptions);
-  const { id, email } = await request.json();
-
-  if (!session || !email || session.user?.email !== email) {
-    return NextResponse.json({ error: 'Unauthenticated or email mismatch' }, { status: 401 });
-  }
-
-  try {
-    await prisma.event.delete({
-      where: { id }
-    });
-
-    return NextResponse.json({ message: 'Event deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting event:', error);
-    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
-  }
+    }
 }
