@@ -11,7 +11,6 @@ const EditPage = ({appId}) => {
     return window?.localStorage.getItem('selectedNode');
   });
 
-  console.log(selectedNode);
 
   // Handler to track form changes
   const handleInputChange = () => {
@@ -502,9 +501,11 @@ const EditPage = ({appId}) => {
             <h2 className="text-lg font-bold text-center mb-4">Changes Saved!</h2>
             <p className="text-center">Your changes have been successfully saved.</p>
             <div className="flex justify-center mt-4">
-              <button onClick={closeModal} className="bg-blue-500 text-white px-6 py-2 rounded-lg">
-                Close
-              </button>
+              <Link href="/">
+                <button className="bg-blue-500 text-white px-6 py-2 rounded-lg">
+                  Close
+                </button>
+              </Link>
             </div>
           </div>
         </div>
