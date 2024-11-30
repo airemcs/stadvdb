@@ -72,6 +72,28 @@ export default function Concurrency({ params }) {
   const [testType, setTestType] = useState('');
   const [testText, setTestText] = useState('');
   const [testStarted, setTestStarted] = useState(true);
+  const [games, setGames] =useState({})
+  useEffect(() => {
+    const fetchGames = async () => {
+      setLoading(true);
+      try {
+        const queryParams = new URLSearchParams({
+          limit: 1,
+        }).toString();
+
+        const response = await fetch(`/api/games?${queryParams}`);
+        const data = await response.json();
+        setGames(data.games);
+      } catch (error) {
+        console.error("Error fetching games:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGames();
+  });
+
 
   const params2 = React.use(params);
   useEffect(() => {
