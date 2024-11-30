@@ -2,7 +2,6 @@ import Link from 'next/link';
 
 import Image from 'next/image';
 import React from 'react';
-
 const GameRow = ({ appID, gameName, date, price, requiredAge, estimatedOwners }) => {
 
   const handleClick = () => {
