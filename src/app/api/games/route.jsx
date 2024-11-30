@@ -4,23 +4,33 @@ import prisma from '../../../../prisma/client';
 export async function GET(request) {
     try {
       const { searchParams } = new URL(request.url);
-      const page = parseInt(searchParams.get('page'), 10) || 1;
-      const limit = parseInt(searchParams.get('limit'), 10) || 50;
-      const skip = (page - 1) * limit;
-      const games = await prisma.games.findMany({
-        skip: skip,
-        take: limit,
-      });
-  
-      if (games.length === 0) {
-        return NextResponse.json({ message: 'No games found' }, { status: 404 });
+      const AppID = searchParams.get('AppID');
+      console.log(AppID)
+      if (AppID) {
+        const game = await prisma.games.findUnique({
+          where: { AppID: AppID},
+        });
+        if (!game) {
+          return NextResponse.json({ message: 'Game not found' }, { status: 404 });
+        }
+        return NextResponse.json(game);
+      } else {
+        const page = parseInt(searchParams.get('page'), 10) || 1;
+        const limit = parseInt(searchParams.get('limit'), 10) || 50;
+        const skip = (page - 1) * limit;
+        const games = await prisma.games.findMany({
+          skip: skip,
+          take: limit,
+        });
+        if (games.length === 0) {
+          return NextResponse.json({ message: 'No games found' }, { status: 404 });
+        }
+        return NextResponse.json(games);
       }
-  
-      return NextResponse.json(games);
-    } catch (error) {
-      console.error('Error fetching games:', error);
-      return NextResponse.json({ error: 'Failed to fetch games' }, { status: 500 });
-    }
+    }   catch (error) {
+        console.error('Error fetching games:', error.message, error.stack);
+        return NextResponse.json({ error: 'Failed to fetch games' }, { status: 500 });
+      }
   }
 
 export async function POST() {

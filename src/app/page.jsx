@@ -13,7 +13,7 @@ export default function Home() {
       try {
         const response = await fetch(`/api/games?page=${currentPage}&limit=${gamesPerPage}`);
         const data = await response.json();
-        console.log(data)
+
         setGames(data);
       } catch (error) {
         console.error("Error fetching games:", error);
@@ -57,8 +57,8 @@ export default function Home() {
 
           <hr className="bg-normal-green h-[2px] w-full mt-3"></hr>
 
-          {games.map((game) => (
-            <Link href="/view" className="z-0" key={game.AppID}>
+          {games.map((game) => (            
+            <Link href={`/view/${game.AppID}`} className="z-0" key={game.AppID}>
               <GameRow
                 appID={game.AppID}
                 gameName={game.Name}
