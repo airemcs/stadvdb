@@ -22,31 +22,28 @@ const ViewPage = ({ AppID }) => {
   }, []);
 
   if (!gameData) {
-    return <div>Loading...</div>; 
+    return <div>   
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+        <div className="bg-white p-5 rounded-md shadow-xl">
+          <p className="text-gray-800">Loading...</p>
+        </div>
+      </div>
+   </div>; 
   }
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
-      {/* Form Container */}
       <div className="w-full max-w-4xl bg-gray-400 p-8 rounded-lg shadow-lg space-y-8">
-        
       <div className="flex items-center justify-between mb-8">
-          {/* Return Button */}
           <Link href="/" className="btn border-none text-gray-900 hover:bg-gray-400 w-24 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-gray-500">
             Return
           </Link>
-
-          {/* App ID Display */}
           <div className="text-gray-700 text-lg font-medium">
             <span>App ID: </span>
             <span className="font-bold text-gray-900">{gameData.AppID}</span>
           </div>
         </div>
-
-        {/* Display all the fields */}
         <div className="space-y-6">
-
-          {/* Name, Release Date, Estimated Owners */}
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-gray-700 font-semibold text-2xl italic">Name</p>
@@ -61,8 +58,6 @@ const ViewPage = ({ AppID }) => {
               <p className="text-gray-900 text-lg">{gameData.EstimatedOwners}</p>
             </div>
           </div>
-
-          {/* Peak CCU, Required Age, Price */}
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-gray-700 font-semibold text-2xl italic">Peak CCU</p>
@@ -77,8 +72,6 @@ const ViewPage = ({ AppID }) => {
               <p className="text-gray-900 text-lg">{gameData.Price}</p>
             </div>
           </div>
-
-          {/* DLCCOUNT, Long Description */}
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-gray-700 font-semibold text-2xl italic">DLCCOUNT</p>
@@ -93,8 +86,6 @@ const ViewPage = ({ AppID }) => {
               <p className="text-gray-900 text-lg">{gameData.MedianPlaytime}</p>
             </div>
           </div>
-
-          {/* Reviews, Header Image, Website */}
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-gray-700 font-semibold text-2xl italic">Genres</p>
@@ -109,8 +100,6 @@ const ViewPage = ({ AppID }) => {
               <p className="text-gray-900 text-lg">{gameData.Categories}</p>
             </div>
           </div>
-
-          {/* Website, Support Web, Support Email */}
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-gray-700 font-semibold text-2xl italic">Website</p>
@@ -125,10 +114,7 @@ const ViewPage = ({ AppID }) => {
               <p className="text-gray-700 font-semibold text-2xl italic">Publishers</p>
               <p className="text-gray-900 text-lg">{gameData.Publishers}</p>
             </div>
-            
           </div>
-
-          {/* Developers, Publishers, Categories */}
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-gray-700 font-semibold text-2xl italic">Recommends</p>
