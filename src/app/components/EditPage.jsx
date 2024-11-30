@@ -7,6 +7,11 @@ const EditPage = ({appId}) => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Track if the modal is open
   const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Track if the confirmation modal is open
   const [loading, setLoading] = useState(true);
+  const [selectedNode, setSelectedNode] = useState(() => {
+    return window?.localStorage.getItem('selectedNode');
+  });
+
+  console.log(selectedNode);
 
   // Handler to track form changes
   const handleInputChange = () => {
@@ -45,6 +50,7 @@ const EditPage = ({appId}) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            node: selectedNode,
             id: appId, // Make sure appId is defined and valid
             name: gameDetails.gamename,
             releaseDate: gameDetails.releaseDate,
@@ -182,6 +188,7 @@ const EditPage = ({appId}) => {
             <div className="flex-1">
               <input 
                 type="text" 
+          
                 value={gameDetails.gamename} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
                   onChange={(e) => 

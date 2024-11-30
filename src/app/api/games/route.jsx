@@ -20,6 +20,7 @@ export async function GET(request) {
         } else if (node === "Node2") {
             currentNode = node_2;
         }
+
         if (AppID) filters.AppID = { contains: AppID };
         if (gameName) filters.Name = { contains: gameName };
         if (date) {
@@ -57,9 +58,6 @@ export async function PUT(request) {
     try {
       // Parse the request body
       const body = await request.json();
-  
-      
-  
       const {
         id,
         name,
@@ -78,15 +76,25 @@ export async function PUT(request) {
         categories,
         genres,
         tags,
+        node
       } = body
   
       for (const [key, value] of Object.entries(body)) {
         console.log(`Key: ${key}, Value: ${value}`);
       }
+
+      let currentNode = node; 
+        if (node === "main_node") {
+            currentNode = main_node;
+        } else if (node === "Node1") {
+            currentNode = node_1;
+        } else if (node === "Node2") {
+            currentNode = node_2;
+        }
   
       // Update the game record in the database
-      const updatedGame = await prisma.games.update({
-        where: {   AppID: id }, // Ensure `id` exists and is passed correctly
+      const updatedGame = await currentNode.games.update({
+        where: { AppID: id }, // Ensure `id` exists and is passed correctly
         data: {
           AppID: id,
           Name: name,
