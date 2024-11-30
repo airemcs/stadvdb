@@ -12,7 +12,7 @@ export async function GET(request) {
         const requiredAge = searchParams.get('requiredAge');
         const estimatedOwners = searchParams.get('estimatedOwners');
         const filters = {};
-        let currentNode = node_2; 
+        let currentNode = main_node; 
         if (node === "main_node") {
             currentNode = main_node;
         } else if (node === "node_1") {
@@ -20,7 +20,6 @@ export async function GET(request) {
         } else if (node === "node_2") {
             currentNode = node_2;
         }
-
         if (AppID) filters.AppID = { contains: AppID };
         if (gameName) filters.Name = { contains: gameName };
         if (date) {

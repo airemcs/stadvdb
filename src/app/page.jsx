@@ -12,10 +12,13 @@ export default function Home(node) {
   const [filters, setFilters] = useState({ appId: '', gameName: '', date: '', price: '', requiredAge: '', estimatedOwners: '' });
   const [appliedFilters, setAppliedFilters] = useState({});
   const [totalGames, setTotalGames] = useState("");
-  const [selectedNode, setSelectedNode] = useState("Main Node"); // State for selected dropdown node
+  const [selectedNode, setSelectedNode] = useState("Main Node");
   const gamesPerPage = 5;
 
   useEffect(() => {
+    if(node){
+      setSelectedNode(node)
+    }
     const fetchGames = async () => {
       setLoading(true);
       try {
@@ -161,7 +164,7 @@ export default function Home(node) {
           {games &&
               games.map((game) => (
                 // eslint-disable-next-line jsx-a11y/anchor-is-valid
-                <Link href={`/view/${game.AppID}`} className="z-0" key={game.AppID}>
+                <Link href={`/view/${game.AppID}?selectedNode=${encodeURIComponent(JSON.stringify(game))}` }>
                   <GameRow
                     appID={game.AppID}
                     gameName={game.Name}
@@ -169,6 +172,7 @@ export default function Home(node) {
                     price={game.Price}
                     requiredAge={game.RequiredAge}
                     estimatedOwners={game.EstimatedOwners}
+                    node = {selectedNode}
                   />
                 </Link>
               ))
