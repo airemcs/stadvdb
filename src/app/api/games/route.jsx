@@ -155,30 +155,33 @@ export async function PUT(request) {
   export async function DELETE(request) {
 
     const body = await request.json();
-    const { id, node} = body;
 
-    console.log(id);
-    console.log(node);
+    console.log(body.id);
+    console.log(body.node);
   
-    let currentNode = node; 
-    if (node === "main_node") {
+    let currentNode = body.node; 
+
+    if (body.node === "main_node") {
         currentNode = main_node;
-    } else if (node === "Node1") {
+    } else if (body.node === "Node1") {
         currentNode = node_1;
-    } else if (node === "Node2") {
+    } else if (body.node === "Node2") {
         currentNode = node_2;
    }
   
     try {
       const deletegame1 = await main_node.games.delete({
-        where: { AppID: id }
-      });
-
-      const deletegame2 = await node_2.games.delete({
-        where: { AppID: id }
+        where: { AppID: body.id }
       });
       
-      return NextResponse.json(deletegame1,deletegame2);
+      if(body.node === "Node2"){
+        const deletegame2 = await node_2.games.delete({
+          where: { AppID: body.id }
+      });
+        
+      }
+
+      return NextResponse.json(deletegame1);
   
     } catch (error) {
       console.error('Error deleting game:', error);
