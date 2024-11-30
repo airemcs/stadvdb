@@ -6,14 +6,14 @@ import GameRow from "./components/GameRow";
 
 export default function Home() {
   const [games, setGames] = useState([]);
-  const [currentPage, setCurrentPage] = useState(() => Number(localStorage.getItem('currentPage')) || 1);
+  const [currentPage, setCurrentPage] = useState(() => Number(window?.localStorage.getItem('currentPage')) || 1);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState("");
   const [filters, setFilters] = useState({ appId: '', gameName: '', date: '', price: '', requiredAge: '', estimatedOwners: '' });
   const [appliedFilters, setAppliedFilters] = useState({});
   const [totalGames, setTotalGames] = useState("");
   const [selectedNode, setSelectedNode] = useState(() => {
-    return localStorage.getItem('selectedNode') || 'main_node';
+    return window?.localStorage.getItem('selectedNode') || 'main_node';
   });
 
   const gamesPerPage = 5;
@@ -52,7 +52,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    localStorage.setItem('currentPage', currentPage);
+    window?.localStorage.setItem('currentPage', currentPage);
   }, [currentPage]);
   
   const handleKeyPress = (e) => {
@@ -62,8 +62,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    localStorage.setItem('selectedNode', selectedNode);
-    localStorage.setItem('currentPage', currentPage);
+    window?.localStorage.setItem('selectedNode', selectedNode);
+    window?.localStorage.setItem('currentPage', currentPage);
   }, [selectedNode, currentPage]);
 
   const applyFilters = () => {
@@ -83,7 +83,6 @@ export default function Home() {
       setCurrentPage(currentPage - 1);
     }
   };
-  console.log(selectedNode)
 
   return (
     <>
@@ -97,16 +96,26 @@ export default function Home() {
       <div className="mx-4 lg:mx-16 mt-10 pb-6">
         <div className="text-white text-4xl lg:text-5xl italic font-bold">Games</div>
         
-        <div className="mt-5">
-          <select
-            value={selectedNode}
-            onChange={(e) => setSelectedNode(e.target.value)}
-            className="border border-white rounded-md py-2 px-3 text-black"
-          >
-            <option value = "main_node">Main Node</option>
-            <option>Node1</option>
-            <option>Node2</option>
-          </select>
+        <div className="flex gap-3 justify-center items-center">
+          <div className="mt-5">
+            <select
+              value={selectedNode}
+              onChange={(e) => setSelectedNode(e.target.value)}
+              className="border border-white rounded-md py-2 px-3 text-black"
+            >
+              <option value = "main_node">Main Node</option>
+              <option>Node1</option>
+              <option>Node2</option>
+            </select>
+          </div>
+          <div className="mt-5 text-xl font-bold">
+            Concurrency
+          </div>
+          <div className="mt-5 gap-4 flex">
+            <Link href = "/concurrency/1" className="border border-white rounded-md py-[9px] px-3 text-black">Case 1</Link>
+            <Link href = "/concurrency/2" className="border border-white rounded-md py-[9px] px-3 text-black">Case 2</Link>
+            <Link href = "/concurrency/3" className="border border-white rounded-md py-[9px] px-3 text-black">Case 3</Link>
+          </div>
         </div>
 
         <div className='flex flex-wrap items-center space-x-4 mt-5'>
