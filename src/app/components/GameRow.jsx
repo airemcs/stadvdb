@@ -24,7 +24,7 @@ const GameRow = ({ appID, gameName, date, price, requiredAge, estimatedOwners })
     <div className='flex space-x-2'>
     <div className='flex gap-5 items-center'>
 
-      <Link href="/edit" className='btn border-none hover:bg-opacity-90 w-24 bg-yellow-500 h-10 flex items-center justify-center rounded outline outline-1 z-30'>
+      <Link href={`/edit/${appID}`} className='btn border-none hover:bg-opacity-90 w-24 bg-yellow-500 h-10 flex items-center justify-center rounded outline outline-1 z-30'>
         
       <Image
         className='mr-2'

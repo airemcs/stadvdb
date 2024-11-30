@@ -51,3 +51,89 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Failed to fetch games' }, { status: 500 });
     }
 }
+
+
+export async function PUT(request) {
+    try {
+      // Parse the request body
+      const body = await request.json();
+  
+      
+  
+      const {
+        id,
+        name,
+        releaseDate,
+        estimatedOwners,
+        peakCCU,
+        requiredAge,
+        price,
+        dlcCount,
+        website,
+        supportEmail,
+        recommends,
+        averagePlaytime,
+        medianPlaytime,
+        publishers,
+        categories,
+        genres,
+        tags,
+      } = body
+  
+      for (const [key, value] of Object.entries(body)) {
+        console.log(`Key: ${key}, Value: ${value}`);
+      }
+  
+      // Update the game record in the database
+      const updatedGame = await prisma.games.update({
+        where: {   AppID: id }, // Ensure `id` exists and is passed correctly
+        data: {
+          AppID: id,
+          Name: name,
+          ReleaseDate: releaseDate,
+          EstimatedOwners: estimatedOwners,
+          PeakCCU: peakCCU,
+          RequiredAge: requiredAge,
+          Price: price,
+          DLCCOUNT: dlcCount,
+          Website: website,
+          SupportEmail: supportEmail,
+          Recommends: recommends,
+          AveragePlaytime: averagePlaytime,
+          MedianPlaytime: medianPlaytime,
+          Publishers: publishers,
+          Categories: categories,
+          Genres: genres,
+          Tags: tags,
+        },
+      });
+  
+      // Return the updated game as a JSON response
+      return NextResponse.json(updatedGame);
+  
+    } catch (error) {
+      console.error('Error updating game:', error);
+  
+      // Handle errors gracefully
+      return NextResponse.json(
+        { error: 'Failed to update game' },
+        { status: 500 }
+      );
+    }
+  }
+  
+  
+  export async function DELETE() {
+    const { id } = await request.json();
+  
+    try {
+      await prisma.games.delete({
+        where: { id }
+      });
+      
+      return NextResponse.json({ message: 'Game deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
+    }
+  }

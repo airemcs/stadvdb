@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import Link from 'next/link';
+import { getActiveResourcesInfo } from 'process';
+import React, { useState, useEffect } from 'react';
 
-const EditPage = () => {
+const EditPage = ({appId}) => {
   const [isFormChanged, setIsFormChanged] = useState(false); // Track if the form has changed
   const [isModalOpen, setIsModalOpen] = useState(false); // Track if the modal is open
   const [isConfirmOpen, setIsConfirmOpen] = useState(false); // Track if the confirmation modal is open
+  const [loading, setLoading] = useState(true);
 
   // Handler to track form changes
   const handleInputChange = () => {
@@ -13,6 +16,7 @@ const EditPage = () => {
   // Handler to close the modal
   const closeModal = () => {
     setIsModalOpen(false);
+    setIsConfirmOpen(false);
   };
 
   // Handler to open the confirmation modal
@@ -27,10 +31,125 @@ const EditPage = () => {
 
   // Handler for confirming the save
   const confirmSave = () => {
+
     setIsFormChanged(false);
-    setIsConfirmOpen(false);
     setIsModalOpen(true); // Show the success modal
+
+    const updateGame = async() => {
+      setLoading(true);
+      try {
+        console.log("checking" + appId);
+        const response = await fetch(`/api/games`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: appId, // Make sure appId is defined and valid
+            name: gameDetails.gamename,
+            releaseDate: gameDetails.releaseDate,
+            estimatedOwners: gameDetails.estimatedOwners,
+            peakCCU: gameDetails.peakCCU,
+            requiredAge: gameDetails.requiredAge,
+            price: gameDetails.price,
+            dlcCount: gameDetails.dlcCount,
+            website: gameDetails.website,
+            supportEmail: gameDetails.supportEmail, // Fixed property name
+            recommends: gameDetails.recommends,
+            averagePlaytime: gameDetails.averagePlaytime,
+            medianPlaytime: gameDetails.medianPlaytime,
+            publishers: gameDetails.publishers,
+            categories: gameDetails.categories,
+            genres: gameDetails.genres,
+            tags: gameDetails.tags,
+          }),
+        });
+    
+        const data = await response.json();
+        
+        if (response.ok) {
+          console.log('Games saved successfully:', data);
+          setProposalFields(data.proposal); 
+          isConfirmOpen(false);
+        } else {
+          console.error('Error saving games:', data.message);
+        }
+      } catch (error) {
+        console.error('Error during save games process:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    updateGame();
   };
+
+  const [gameDetails, setGameDetails] = useState({
+    gamename: '',
+    releaseDate: '',
+    estimatedOwners: '',
+    peakCCU: 0,
+    requiredAge: 0,
+    price: 0.0,
+    dlcCount: 0,
+    website: '',
+    supportEmail: '',
+    recommends: 0,
+    averagePlaytime: 0,
+    medianPlaytime: 0,
+    publishers: '',
+    categories: '',
+    genres: '',
+    tags: '',
+  });
+
+  const fetchgameDetails = async () => {
+    try {
+      const gameId = appId;
+
+      const response = await fetch(`/api/games?appId=${gameId}`);
+
+      if (!response.ok) {
+        throw new Error(`Error fetching game: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      console.log(data.games[0])
+
+      setGameDetails({
+        gamename: data.games[0].Name,
+        releaseDate: data.games[0].ReleaseDate,
+        estimatedOwners: data.games[0].EstimatedOwners,
+        peakCCU: data.games[0].PeakCCU,
+        requiredAge: data.games[0].RequiredAge,
+        price: data.games[0].Price,
+        dlcCount: data.games[0].DLCCOUNT,
+        website: data.games[0].Website,
+        supportEmail: data.games[0].SupportEmail,
+        recommends: data.games[0].Recommends,
+        averagePlaytime: data.games[0].AveragePlaytime,
+        medianPlaytime: data.games[0].MedianPlaytime,
+        publishers: data.games[0].Publishers,
+        categories: data.games[0].Categories,
+        genres: data.games[0].Genres,
+        tags: data.games[0].Tags
+      }) 
+
+    } catch (error) {
+      console.error("Error fetching game:", error);
+    }
+  };
+  
+  
+  useEffect(() => {
+    fetchgameDetails();
+  },[]);
+
+  if (!gameDetails) {
+    return <div>Loading...</div>; 
+  }
+
+  console.log(gameDetails);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-200 p-4">
@@ -41,14 +160,17 @@ const EditPage = () => {
         {/* Header with Button and App ID */}
         <div className="flex items-center justify-between mb-8">
           {/* Return Button */}
-          <button className="btn border-none text-gray-900 hover:bg-gray-300 w-24 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-gray-200">
-            Return
-          </button>
+          <Link href="/">
+            <button className="btn border-none text-gray-900 hover:bg-gray-300 w-24 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-gray-200">
+              Return
+            </button>
+          </Link>
+          
 
           {/* App ID Display */}
           <div className="text-gray-700 text-sm font-medium">
             <span>App ID: </span>
-            <span className="font-bold text-gray-900">12345</span>
+            <span className="font-bold text-gray-900">{appId}</span>
           </div>
         </div>
 
@@ -60,17 +182,27 @@ const EditPage = () => {
             <div className="flex-1">
               <input 
                 type="text" 
-                placeholder="Game" 
+                value={gameDetails.gamename} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                  onChange={(e) => 
+                    setGameDetails((prevDetails) => ({
+                      ...prevDetails,       // Copy all existing properties
+                      gamename: e.target.value // Override the specific property
+                    }))                  
+                  } 
               />
             </div>
             <div className="flex-1">
               <input 
                 type="date" 
-                placeholder="Release Date" 
+                value={gameDetails.releaseDate}  
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    releaseDate: e.target.value,
+                  }))
+                }
               />
             </div>
           </div>
@@ -80,25 +212,40 @@ const EditPage = () => {
             <div className="flex-1">
               <input 
                 type="number" 
-                placeholder="Estimated Owners" 
+                value={gameDetails.estimatedOwners} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    estimatedOwners: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="flex-1">
               <input 
                 type="number" 
-                placeholder="Peak CCU" 
+                value={gameDetails.peakCCU} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    peakCCU: Number(e.target.value), // Convert to number
+                  }))
+                }
               />
             </div>
             <div className="flex-1">
               <input 
                 type="text" 
-                placeholder="Required Age" 
+                value={gameDetails.requiredAge}  
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    requiredAge: Number(e.target.value), // Convert to number
+                  }))
+                }
               />
             </div>
           </div>
@@ -107,25 +254,40 @@ const EditPage = () => {
             <div className="flex-1">
               <input 
                 type="number" 
-                placeholder="Price" 
+                value={gameDetails.price} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    price: parseFloat(e.target.value), // Convert to float
+                  }))
+                } 
               />
             </div>
             <div className="flex-1">
               <input 
                 type="number" 
-                placeholder="DLCCOUNT" 
+                value={gameDetails.dlcCount}  
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    dlcCount: Number(e.target.value), // Convert to number
+                  }))
+                }
               />
             </div>
             <div className="flex-1">
               <input 
                 type="text" 
-                placeholder="Website" 
+                value={gameDetails.website} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    website: e.target.value,
+                  }))
+                }
               />
             </div>
           </div>
@@ -134,25 +296,40 @@ const EditPage = () => {
             <div className="flex-1">
               <input 
                 type="email" 
-                placeholder="Support Email" 
+                value={gameDetails.supportEmail} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    supportEmail: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="flex-1">
               <input 
                 type="text" 
-                placeholder="Recommends" 
+                value={gameDetails.recommends} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    recommends: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="flex-1">
               <input 
                 type="number" 
-                placeholder="Average Playtime" 
+                value={gameDetails.averagePlaytime} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    averagePlaytime: Number(e.target.value), // Convert to number
+                  }))
+                }
               />
             </div>
           </div>
@@ -161,25 +338,40 @@ const EditPage = () => {
             <div className="flex-1">
               <input 
                 type="number" 
-                placeholder="Median Playtime" 
+                value={gameDetails.medianPlaytime}  
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    medianPlaytime: Number(e.target.value), // Convert to number
+                  }))
+                }
               />
             </div>
             <div className="flex-1">
               <input 
                 type="text" 
-                placeholder="Publishers" 
+                value={gameDetails.publishers} 
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    publishers: e.target.value,
+                  }))
+                }
               />
             </div>
             <div className="flex-1">
               <input 
                 type="text" 
-                placeholder="Genres" 
+                value={gameDetails.genres}  
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    genres: e.target.value,
+                  }))
+                }
               />
             </div>
           </div>
@@ -188,9 +380,30 @@ const EditPage = () => {
             <div className="flex-1">
               <input 
                 type="text" 
-                placeholder="Tags" 
+                value={gameDetails.categories}  
                 className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                onChange={handleInputChange} 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    categories: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="flex space-x-6">
+            <div className="flex-1">
+              <input 
+                type="text" 
+                value={gameDetails.tags} 
+                className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
+                onChange={(e) =>
+                  setGameDetails((prevDetails) => ({
+                    ...prevDetails,
+                    tags: e.target.value,
+                  }))
+                }
               />
             </div>
           </div>
@@ -200,8 +413,7 @@ const EditPage = () => {
         <div className="mt-8 flex justify-end">
           <button
             onClick={openConfirmation}
-            className={`btn ${isFormChanged ? 'bg-green-500' : 'bg-gray-300'} text-white w-28 h-10 flex items-center justify-center rounded-lg outline outline-2 ${isFormChanged ? 'border-green-500' : ''}`}
-            disabled={!isFormChanged}
+            className='bg-green-500 text-white w-28 h-10 flex items-center justify-center rounded-lg outline outline-2 border-green-500'
           >
             Save
           </button>

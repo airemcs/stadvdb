@@ -7,6 +7,7 @@ const ViewPage = ({ AppID }) => {
     try {
       const gameId = AppID.id;
       const response = await fetch(`/api/games?appId=${gameId}`);
+      
       if (!response.ok) {
         throw new Error(`Error fetching game: ${response.statusText}`);
       }
