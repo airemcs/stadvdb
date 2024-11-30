@@ -93,7 +93,30 @@ export async function PUT(request) {
         }
   
       // Update the game record in the database
-      const updatedGame = await currentNode.games.update({
+      const updatedGame1 = await main_node.games.update({
+        where: { AppID: id }, // Ensure `id` exists and is passed correctly
+        data: {
+          AppID: id,
+          Name: name,
+          ReleaseDate: releaseDate,
+          EstimatedOwners: estimatedOwners,
+          PeakCCU: peakCCU,
+          RequiredAge: requiredAge,
+          Price: price,
+          DLCCOUNT: dlcCount,
+          Website: website,
+          SupportEmail: supportEmail,
+          Recommends: recommends,
+          AveragePlaytime: averagePlaytime,
+          MedianPlaytime: medianPlaytime,
+          Publishers: publishers,
+          Categories: categories,
+          Genres: genres,
+          Tags: tags,
+        },
+      });
+
+      const updatedGame2 = await node_2.games.update({
         where: { AppID: id }, // Ensure `id` exists and is passed correctly
         data: {
           AppID: id,
@@ -117,7 +140,7 @@ export async function PUT(request) {
       });
   
       // Return the updated game as a JSON response
-      return NextResponse.json(updatedGame);
+      return NextResponse.json(updatedGame1,updatedGame2);
   
     } catch (error) {
       console.error('Error updating game:', error);
@@ -129,19 +152,38 @@ export async function PUT(request) {
       );
     }
   }
-  
-  
-export async function DELETE() {
-  const { id } = await request.json();
+  export async function DELETE(request) {
 
-  try {
-    await prisma.games.delete({
-      where: { id }
-    });
-    
-    return NextResponse.json({ message: 'Game deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting event:', error);
-    return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
+    const body = await request.json();
+    const { id, node} = body;
+
+    console.log(id);
+    console.log(node);
+  
+    let currentNode = node; 
+    if (node === "main_node") {
+        currentNode = main_node;
+    } else if (node === "Node1") {
+        currentNode = node_1;
+    } else if (node === "Node2") {
+        currentNode = node_2;
+   }
+  
+    try {
+      const deletegame1 = await main_node.games.delete({
+        where: { AppID: id }
+      });
+
+      const deletegame2 = await node_2.games.delete({
+        where: { AppID: id }
+      });
+      
+      return NextResponse.json(deletegame1,deletegame2);
+  
+    } catch (error) {
+      console.error('Error deleting game:', error);
+      console.error('Error deleting games:', error.message, error.stack);
+      return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
+    }
   }
-}
+  

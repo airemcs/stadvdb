@@ -1,6 +1,7 @@
 /* eslint-disable */
 'use client';
 import Link from "next/link";
+import Router from "next/router";
 import { useEffect, useState } from "react";
 import GameRow from "./components/GameRow";
 
@@ -11,14 +12,54 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState("");
   const [filters, setFilters] = useState({ appId: '', gameName: '', date: '', price: '', requiredAge: '', estimatedOwners: '' });
   const [appliedFilters, setAppliedFilters] = useState({});
+
   const [totalGames, setTotalGames] = useState("");
+  
+  const [showModal, setShowModal] = useState(false); // Modal state
+  const [gameToDelete, setGameToDelete] = useState(null);
   const [selectedNode, setSelectedNode] = useState(() => {
     return window?.localStorage.getItem('selectedNode') || 'main_node';
   });
 
-  const gamesPerPage = 5;
+  const gamesPerPage = 6;
+
+  const handleDelete = async () => {
+    if (!gameToDelete) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/games`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: gameToDelete,
+          node: selectedNode,
+        }),
+      });
+
+      const data = await response.json();
+
+      setTotalGames(totalGames-1)
+
+      if (response.ok) {
+        console.log('Game deleted successfully:', data);
+        // Update the local state to remove the deleted game
+        setGames((prevGames) => prevGames.filter((game) => game.AppID !== gameToDelete));
+        setShowModal(false); // Close the modal after deletion
+        setLoading(false);
+      } else {
+        console.error('Error deleting game:', data.message);
+      }
+    } catch (error) {
+      console.error('Error during delete game process:', error);
+    }
+    
+  };
 
   useEffect(() => {
+
+    
     const fetchGames = async () => {
       setLoading(true);
       try {
@@ -33,17 +74,21 @@ export default function Home() {
         const data = await response.json();
         setGames(data.games);
         setTotalGames(data.count)
+
+
         if (data.error === "Failed to fetch games")
           setTotalGames(0)
         setTotalPages(Math.ceil(data.count / gamesPerPage))
       } catch (error) {
         console.error("Error fetching games:", error);
       } finally {
+        setShowModal(false);
         setLoading(false);
       }
     };
 
     fetchGames();
+    
   }, [currentPage, appliedFilters, selectedNode]);
 
   const handleFilterChange = (e) => {
@@ -83,15 +128,40 @@ export default function Home() {
       setCurrentPage(currentPage - 1);
     }
   };
+  
 
   return (
     <>
+
+{showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white p-5 rounded-md shadow-xl max-w-md w-full">
+            <p className="text-gray-800 text-xl mb-4">Are you sure you want to delete this game?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-400 hover:bg-gray-600 text-white py-2 px-5 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="bg-red-500 hover:bg-red-600 text-white py-2 px-5 rounded-md"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
           <div className="bg-white p-5 rounded-md shadow-xl">
             <p className="text-gray-800">Loading...</p>
           </div>
         </div>
+        
       )}
       <div className="mx-4 lg:mx-16 mt-10 pb-6">
         <div className="text-white text-4xl lg:text-5xl italic font-bold">Games</div>
@@ -127,7 +197,7 @@ export default function Home() {
           </div>
 
           <div className='flex items-center border border-white rounded-md px-3 py-2 hover:border-green-700 hover:shadow-lg focus-within:border-green-700'>
-            <input value={filters.name} type="text" placeholder="Game Name" name="gameName" className='text-white w-full lg:w-[236px] outline-none bg-transparent' onChange={handleFilterChange} onKeyPress={handleKeyPress} />
+            <input value={filters.gameName} type="text" placeholder="Game Name" name="gameName" className='text-white w-full lg:w-[236px] outline-none bg-transparent' onChange={handleFilterChange} onKeyPress={handleKeyPress} />
             <svg className='text-white w-5 h-5 mr-2' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 4a6 6 0 100 12 6 6 0 000-12zm13 15l-7.5-4.5" />
             </svg>
@@ -191,6 +261,9 @@ export default function Home() {
                     requiredAge={game.RequiredAge}
                     estimatedOwners={game.EstimatedOwners}
                     node = {selectedNode}
+                    onDelete={() => {
+                      setGameToDelete(game.AppID);
+                      setShowModal(true);}} // Correctly pass the parameters
                   />
                 </Link>
               ))

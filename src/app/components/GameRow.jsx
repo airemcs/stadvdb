@@ -4,12 +4,16 @@ import Link from 'next/link';
 
 import Image from 'next/image';
 import React from 'react';
-const GameRow = ({ appID, gameName, date, price, requiredAge, estimatedOwners}) => {
-  const handleClick = () => {
-    e.preventDefault();
-    alert("Click");
-  }
+const GameRow = ({ appID, gameName, date, price, requiredAge, estimatedOwners, onDelete}) => {
 
+  const handleButtonClick = (e) => {
+    e.stopPropagation();
+    e.nativeEvent.preventDefault();
+    e.nativeEvent.stopImmediatePropagation();
+
+    onDelete();
+  };
+  
   return (
   <div className='flex items-center justify-between rounded-lg shadow-md p-4 mt-6 hover:bg-opacity-90 outline outline-1 hover:outline-gray-700'>
   <div className='h-24 font-bold grid grid-cols-7 text-xl w-full'>
@@ -35,7 +39,7 @@ const GameRow = ({ appID, gameName, date, price, requiredAge, estimatedOwners}) 
       />
       </Link>
       
-      <button onClick={handleClick} className='btn border-none hover:bg-opacity-90  w-24 bg-red-500 h-10 flex items-center justify-center rounded outline outline-1 z-30'>
+      <button onClick={handleButtonClick} className='btn border-none hover:bg-opacity-90  w-24 bg-red-500 h-10 flex items-center justify-center rounded outline outline-1 z-30'>
         <Image
           className='mr-2'
           src="/DeleteIcon.png"
