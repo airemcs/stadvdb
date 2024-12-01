@@ -83,7 +83,6 @@ export async function GET(request) {
 }
 
 export async function PUT(request) {
-    console.log("RN");
 
     const logs = []; 
 
@@ -110,7 +109,6 @@ export async function PUT(request) {
         logs.push(`Attempting to update on ${nodeName}`); 
         try {
             const result = await node.$transaction(async (transaction) => {
-                console.log(`Inside transaction - ${nodeName} - Value of STRAPP:`, STRAPP);
                 return transaction.games.update({
                     where: { AppID: STRAPP },
                     data: dataToUpdate
@@ -165,7 +163,7 @@ export async function PUT(request) {
     if (updateMainResult || updateNode1Result || updateNode2Result) {
         const totalGames = {
             updatedGameMain: { games: updateMainResult },
-            updatedGameNode1: { games: updateNode1Result },
+            updatedGameNode1: { games: updateNode1Result },     
             updatedGameNode2: { games: updateNode2Result },
             main_node: { games: mainGames },
             node_1: { games: node1Games },
@@ -175,7 +173,6 @@ export async function PUT(request) {
         const endTime = Date.now();
         const duration = endTime - startTime;
 
-        console.log(updateNode1Result);
         return NextResponse.json({
             totalGames,
             isolationLevel: selectedIsolationLevel,
