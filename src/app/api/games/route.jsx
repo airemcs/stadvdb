@@ -84,6 +84,7 @@ export async function PUT(request) {
       }
 
       let currentNode = node; 
+
         if (node === "main_node") {
             currentNode = main_node;
         } else if (node === "Node1") {
@@ -91,9 +92,17 @@ export async function PUT(request) {
         } else if (node === "Node2") {
             currentNode = node_2;
         }
+      
+        let updatedGame1;
+        let updatedGame2;
   
       // Update the game record in the database
-      const updatedGame1 = await main_node.games.update({
+      let date = releaseDate.split('-')
+      
+      console.log("updating main node");
+      console.log(node);
+
+      const updatedGame = await main_node.games.update({
         where: { AppID: id }, // Ensure `id` exists and is passed correctly
         data: {
           AppID: id,
@@ -116,31 +125,60 @@ export async function PUT(request) {
         },
       });
 
-      const updatedGame2 = await node_2.games.update({
-        where: { AppID: id }, // Ensure `id` exists and is passed correctly
-        data: {
-          AppID: id,
-          Name: name,
-          ReleaseDate: releaseDate,
-          EstimatedOwners: estimatedOwners,
-          PeakCCU: peakCCU,
-          RequiredAge: requiredAge,
-          Price: price,
-          DLCCOUNT: dlcCount,
-          Website: website,
-          SupportEmail: supportEmail,
-          Recommends: recommends,
-          AveragePlaytime: averagePlaytime,
-          MedianPlaytime: medianPlaytime,
-          Publishers: publishers,
-          Categories: categories,
-          Genres: genres,
-          Tags: tags,
-        },
-      });
+      if (Number(date[0])< 2010){
+        console.log("updating node 1");
+        updatedGame1 = await node_1.games.update({
+          where: { AppID: id }, // Ensure `id` exists and is passed correctly
+          data: {
+            AppID: id,
+            Name: name,
+            ReleaseDate: releaseDate,
+            EstimatedOwners: estimatedOwners,
+            PeakCCU: peakCCU,
+            RequiredAge: requiredAge,
+            Price: price,
+            DLCCOUNT: dlcCount,
+            Website: website,
+            SupportEmail: supportEmail,
+            Recommends: recommends,
+            AveragePlaytime: averagePlaytime,
+            MedianPlaytime: medianPlaytime,
+            Publishers: publishers,
+            Categories: categories,
+            Genres: genres,
+            Tags: tags,
+          },
+        });
+
+      }else if(Number(date[0]) >= 2010){
+        console.log("updating node 2");
+
+        updatedGame2 = await node_2.games.update({
+          where: { AppID: id }, // Ensure `id` exists and is passed correctly
+          data: {
+            AppID: id,
+            Name: name,
+            ReleaseDate: releaseDate,
+            EstimatedOwners: estimatedOwners,
+            PeakCCU: peakCCU,
+            RequiredAge: requiredAge,
+            Price: price,
+            DLCCOUNT: dlcCount,
+            Website: website,
+            SupportEmail: supportEmail,
+            Recommends: recommends,
+            AveragePlaytime: averagePlaytime,
+            MedianPlaytime: medianPlaytime,
+            Publishers: publishers,
+            Categories: categories,
+            Genres: genres,
+            Tags: tags,
+          },
+        });
+      }
   
       // Return the updated game as a JSON response
-      return NextResponse.json(updatedGame1,updatedGame2);
+      return NextResponse.json(updatedGame,updatedGame1,updatedGame2);
   
     } catch (error) {
       console.error('Error updating game:', error);
@@ -157,10 +195,14 @@ export async function DELETE(request) {
 
   const body = await request.json();
 
-  console.log(body.id);
-  console.log(body.node);
-
   let currentNode = body.node; 
+
+  console.log("this is the node"+ body.node)
+  console.log(typeof body.id);
+  console.log(body.node === "Node2");
+
+  //let deletegame1;
+  let deletegame2;
 
   if (body.node === "main_node") {
       currentNode = main_node;
@@ -171,18 +213,27 @@ export async function DELETE(request) {
   }
 
   try {
-    const deletegame1 = await main_node.games.delete({
+    
+    console.log("deleting in main");
+    const deletegame = await main_node.games.delete({
       where: { AppID: body.id }
     });
-    
-    if(body.node === "Node2"){
-      const deletegame2 = await node_2.games.delete({
+
+    if (body.node === "Node1"){
+      console.log("deleting in node 2");
+      deletegame1 = await node_1.games.delete({
         where: { AppID: body.id }
-    });
-      
+      });
     }
 
-    return NextResponse.json(deletegame1);
+    if (body.node === "Node2"){
+      console.log("deleting in node 2");
+      deletegame2 = await node_2.games.delete({
+        where: { AppID: body.id }
+      });
+    }
+
+    return NextResponse.json(deletegame,deletegame1,deletegame2);
 
   } catch (error) {
     console.error('Error deleting game:', error);

@@ -125,7 +125,7 @@ export default function Concurrency({ params }) {
         
 
     } catch (error) {
-        console.error('Error fetching games:', error);
+      console.error("Error fetching game:", error);
     }
     setTestStarted(true);
     setLoading(false);
