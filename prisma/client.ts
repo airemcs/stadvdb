@@ -8,6 +8,14 @@ const main_node = new PrismaClient({
   },
 });
 
+const node_1 = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.node_1,
+    },
+  },
+});
+
 const node_2 = new PrismaClient({
   datasources: {
     db: {
@@ -16,4 +24,4 @@ const node_2 = new PrismaClient({
   },
 });
 
-export { main_node, node_2 };
+export { main_node, node_1, node_2 };

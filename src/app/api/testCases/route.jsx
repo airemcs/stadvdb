@@ -1,130 +1,186 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { main_node, node_2 } from '../../../../prisma/client';
+import { main_node, node_1, node_2 } from '../../../../prisma/client';
 import { stringify } from 'querystring';
 
 export async function GET(request) {
+    const logs = [];
     try {
+        logs.push('Processing GET request');
+
         const { searchParams } = new URL(request.url);
-        
+
         const AppID = searchParams.get('appId');
         const testType = searchParams.get('testType');
         const isolationLevel = searchParams.get('isolationLevel');
         const validIsolationLevels = ['Serializable', 'RepeatableRead', 'ReadCommitted', 'ReadUncommitted'];
-        
+        let filters = {};
+
         if (!AppID) {
+            logs.push('AppID is required');
             return NextResponse.json({ message: 'AppID is required' }, { status: 400 });
         }
+
+        if (testType == 2 || testType == 3) {
+            filters = { AppID: AppID };
+            logs.push('Strict AppID filter applied');
+        } else {
+            filters = { AppID: {contains: AppID} };
+            logs.push('Looking for AppID');
+        }
+
         const selectedIsolationLevel = validIsolationLevels.includes(isolationLevel) ? isolationLevel : undefined;
+        const startTime = Date.now();
 
-        const filters = { AppID: { contains: AppID } };
-
-
-            const startTime = Date.now();
-            const [mainGames, node2Games] = await Promise.all([
-                main_node.$transaction(
-                    async (transaction) => {
-                        return transaction.games.findFirst({ where: filters });
-                    },
+        const performRead = async (node, nodeName) => {
+            logs.push(`Attempting to read game on ${nodeName}`);
+            try {
+                const result = await node.$transaction(
+                    async (transaction) => transaction.games.findFirst({ where: filters }),
                     { isolationLevel: selectedIsolationLevel }
-                ),
-                node_2.$transaction(
-                    async (transaction) => {
-                        return transaction.games.findFirst({ where: filters });
-                    },
-                    { isolationLevel: selectedIsolationLevel }
-                )
-            ]);
-            const endTime = Date.now();
-            const duration = endTime - startTime;     
-            const totalGames = {
-                main_node: { games: mainGames },
-                node_2: { games: node2Games },
-            };
+                );
+                if (result) {
+                    logs.push(`Successfully read game on ${nodeName}`);
+                } else {
+                    logs.push(`No game found on ${nodeName}`);
+                }
+                return result;
+            } catch (error) {
+                logs.push(`Error reading game on ${nodeName}`);
+                console.error(`Error reading game on ${nodeName}:`, error);
+                return null;
+            }
+        };
 
-            return NextResponse.json({
-                totalGames,
-                transactionTime: `${duration} ms`,
-                isolationLevel
-            });
+        const [mainGames, node1Games, node2Games] = await Promise.all([
+            performRead(main_node, 'Main_Node'),
+            performRead(node_1, 'Node_1'),
+            performRead(node_2, 'Node_2')
+        ]);
+
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        logs.push(`Transaction duration: ${duration} ms`);
         
+        const totalGames = {
+            main_node: { games: mainGames },
+            node_1: { games: node1Games },
+            node_2: { games: node2Games },
+        };
+
+        logs.push('GET request processed successfully');
+        return NextResponse.json({
+            totalGames,
+            transactionTime: `${duration} ms`,
+            isolationLevel,
+            logs,
+        });
+
     } catch (error) {
+        logs.push(`Error fetching games: ${error.message}`);
         console.error('Error fetching games:', error.message, error.stack);
-        return NextResponse.json({ error: 'Failed to fetch games' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to fetch games', logs }, { status: 500 });
     }
 }
 
 export async function PUT(request) {
-    try {
-        console.log("RN");
-        const body = await request.json();
-        
-        const {
-            id,
-            name,
-            price,
-            isolationLevel
-        } = body;
-        
-        const validIsolationLevels = ['Serializable', 'RepeatableRead', 'ReadCommitted', 'ReadUncommitted'];
-        const selectedIsolationLevel = validIsolationLevels.includes(isolationLevel) ? isolationLevel : undefined;
+    console.log("RN");
 
-        const dataToUpdate = {};
-        if (name !== undefined) dataToUpdate.Name = name;
-        if (price !== undefined) dataToUpdate.Price = parseFloat(price);
-        
-        const STRAPP = id
-        
-        const startTime = Date.now();
-        const [updatedGame1, mainGames, node2Games, updatedGame2] = await Promise.all([
-            main_node.$transaction(async (transaction) => {
-                console.log('Inside transaction - Value of STRAPP:', STRAPP);
+    const logs = []; 
+
+    const body = await request.json();
+    const {
+        id,
+        name,
+        price,
+        isolationLevel,
+        type
+    } = body;
+
+    const validIsolationLevels = ['Serializable', 'RepeatableRead', 'ReadCommitted', 'ReadUncommitted'];
+    const selectedIsolationLevel = "ReadUncommitted"
+
+    const dataToUpdate = {};
+    if (name !== undefined) dataToUpdate.Name = name;
+    if (price !== undefined) dataToUpdate.Price = parseFloat(price);
+
+    const STRAPP = id;
+    const startTime = Date.now();
+
+    const updateNode = async (node, nodeName) => {
+        logs.push(`Attempting to update on ${nodeName}`); 
+        try {
+            const result = await node.$transaction(async (transaction) => {
+                console.log(`Inside transaction - ${nodeName} - Value of STRAPP:`, STRAPP);
                 return transaction.games.update({
                     where: { AppID: STRAPP },
                     data: dataToUpdate
                 });
-            }, { isolationLevel: selectedIsolationLevel }),
-     
-            main_node.$transaction(
-                async (transaction) => {
-                    return transaction.games.findFirst({ where: {AppID: id} });
-                },
-                { isolationLevel: selectedIsolationLevel }
-            ),
-            node_2.$transaction(
-                async (transaction) => {
-                    return transaction.games.findFirst({ where: {AppID: id} });
-                },
-                { isolationLevel: selectedIsolationLevel }
-            ),
+            }, { isolationLevel: selectedIsolationLevel });
+            logs.push(`Successfully updated on ${nodeName}`);
+            return result;
+        } catch (error) {
+            logs.push(`Error updating game at ${nodeName}`); 
+            console.error(`Error updating game at ${nodeName}:`, error);
+            return null;
+        }
+    };
 
-            node_2.$transaction(async (transaction) => {
-                console.log('Inside transaction - Value of STRAPP:', STRAPP);
-                return transaction.games.update({
-                    where: { AppID: STRAPP },
-                    data: dataToUpdate
-                });
-            }, { isolationLevel: selectedIsolationLevel })
+    const findGame = async (node, nodeName) => {
+        logs.push(`Attempting to read game on ${nodeName}`); 
+        try {
+            const result = await node.$transaction(
+                async (transaction) => transaction.games.findFirst({ where: { AppID: id } }),
+                { isolationLevel: selectedIsolationLevel }
+            );
+            logs.push(`Successfully read game on ${nodeName}`); 
+            return result;
+        } catch (error) {
+            logs.push(`Error finding game at ${nodeName}`); 
+            console.error(`Error finding game at ${nodeName}:`, error);
+            return null;
+        }
+    };
+    let results
+    if (type == 2) {
+         results = await Promise.allSettled([
+            updateNode(main_node, 'main_node'),
+            updateNode(node_1, 'Node 1'),
+            updateNode(node_2, 'Node 2'),
+            findGame(main_node, 'main_node'),
+            findGame(node_1, 'Node 1'),
+            findGame(node_2, 'Node 2')
         ]);
+    } else if (type ==3 ) {
+        results = await Promise.allSettled([
+            updateNode(main_node, 'main_node'),
+            updateNode(node_1, 'Node 1'),
+            updateNode(node_2, 'Node 2'),
 
+        ]);
+    }
+
+
+    const [updateMainResult, updateNode1Result, updateNode2Result, mainGames, node1Games, node2Games] = results.map(result => result.status === 'fulfilled' ? result.value : null);
+
+    if (updateMainResult || updateNode1Result || updateNode2Result) {
         const totalGames = {
-            updatedGame1: { games: updatedGame1 },
-            updatedGame2:{ games: updatedGame2 },
+            updatedGameMain: { games: updateMainResult },
+            updatedGameNode1: { games: updateNode1Result },
+            updatedGameNode2: { games: updateNode2Result },
             main_node: { games: mainGames },
+            node_1: { games: node1Games },
             node_2: { games: node2Games },
         };
+
         const endTime = Date.now();
-        const duration = endTime - startTime;     
+        const duration = endTime - startTime;
+
+        console.log(updateNode1Result);
         return NextResponse.json({
             totalGames,
             isolationLevel: selectedIsolationLevel,
             transactionTime: `${duration} ms`,
+            logs, 
         });
-
-    } catch (error) {
-        console.error('Error updating game:', error);
-        return NextResponse.json(
-            { error: 'Failed to update game' },
-            { status: 500 }
-        );
     }
 }

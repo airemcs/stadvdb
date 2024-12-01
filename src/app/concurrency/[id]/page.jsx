@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import React from 'react';
+import { isNull } from 'util';
 
 export default function Concurrency({ params }) {
   const [testType, setTestType] = useState('');
@@ -11,13 +12,15 @@ export default function Concurrency({ params }) {
   const [appId, setAppId] = useState('');
   const [loading, setLoading] = useState(false);
   const [transactionTime, setTransactionTime] = useState('');
-  const [selectedIsolationLevel, setSelectedIsolationLevel] = useState('ReadCommitted'); // Default level
+  const [selectedIsolationLevel, setSelectedIsolationLevel] = useState('ReadUncommitted'); 
   const isolationLevels = ['Serializable', 'RepeatableRead', 'ReadCommitted', 'ReadUncommitted'];
-  const [dbIsolationLevel, setdbIsolationLevel] = useState('ReadCommitted'); // Default level
+  const [dbIsolationLevel, setdbIsolationLevel] = useState('ReadCommitted'); 
   const [showInputs, setShowInputs] = useState(false)
   const [fetchOnlyA, setFetchOnlyA] = useState(false)
   const [gameName, setGameName] = useState('')
   const [gamePrice, setgamePrice] = useState('')
+  const [logs, setLogs] = useState({})
+  const [data1, setData] = useState({})
 
 
   const params2 = React.use(params);
@@ -44,12 +47,27 @@ export default function Concurrency({ params }) {
         const queryParams = new URLSearchParams({
             appId: appId || '10',
             isolationLevel: selectedIsolationLevel,
+            testType: params2.id
         });
 
         if (params2.id === 1 || useFetchOnly) {
             setShowInputs(false);
             response = await fetch(`/api/testCases?${queryParams.toString()}`);
-            setFetchOnlyA(false);  
+            setFetchOnlyA(false);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          setData(data)
+          setTransactionTime(data.transactionTime);
+          setdbIsolationLevel(data.isolationLevel);
+          setGames(data.totalGames);
+          if(isNull( data.totalGames.main_node.games)) setShowInputs(false) 
+            else setShowInputs(true)
+          setGameName(data.totalGames.main_node.games.Name);
+          setgamePrice(data.totalGames.main_node.games.Price);
+          setAppId(data.totalGames.main_node.games.AppID)
+          setLogs(data.logs)  
         } else if (params2.id == 2 && !useFetchOnly) {
             response = await fetch(`/api/testCases`, {
                 method: 'PUT',
@@ -57,39 +75,67 @@ export default function Concurrency({ params }) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    id: appId,
+                    id: appId,              
                     isolationLevel: selectedIsolationLevel,
                     name: gameName,
                     price: gamePrice,
+                    type: params2.id
                 }),
             });
-        } else {
-          console.log("3")
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          setData(data)
+          setTransactionTime(data.transactionTime);
+          setdbIsolationLevel(data.isolationLevel);
+          setGames(data.totalGames);
+          if(isNull( data.totalGames.main_node.games)) setShowInputs(false) 
+            else setShowInputs(true)
+          setGameName(data.totalGames.main_node.games.Name);
+          setgamePrice(data.totalGames.main_node.games.Price);
+          setAppId(data.totalGames.main_node.games.AppID)
+          setLogs(data.logs)
+        } else if (params2.id == 3 && !useFetchOnly) {
+          response = await fetch(`/api/testCases`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: appId,              
+                isolationLevel: selectedIsolationLevel,
+                name: gameName,
+                price: gamePrice,
+                type: params2.id
+            }),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setData(data)
+      setTransactionTime(data.transactionTime);
+      setdbIsolationLevel(data.isolationLevel);
+      setGames(data.totalGames);
+      if(isNull( data.totalGames.main_node.games)) setShowInputs(false) 
+        else setShowInputs(true)
+      setLogs(data.logs)
         }
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
 
-        const data = await response.json();
-        setTransactionTime(data.transactionTime);
-        setdbIsolationLevel(data.isolationLevel);
-        setGames(data.totalGames);
-        setGameName(data.totalGames.main_node.games.Name);
-        setgamePrice(data.totalGames.main_node.games.Price);
-        setAppId(data.totalGames.main_node.games.AppID)
     } catch (error) {
         console.error('Error fetching games:', error);
     }
     setTestStarted(true);
     setLoading(false);
+
 };
 
    
 
 const fetchOnly = async () => {
     await fetchGames(true); 
-      setShowInputs(true);
 };
 
 
@@ -97,10 +143,16 @@ const fetchOnly = async () => {
     if (params2.id == 1){
       setTestStarted(true);
       fetchGames();
-    } else if (params2.id == 2) {
-      fetchGames();
+      if(data.totalGames.main_node.games == null) {
+        setShowInputs(false);
+      } else setShowInputs(true)
+    } else if (params2.id == 2 || params2.id ==3) {
+         fetchGames()
     } 
   };
+
+
+
   return (
     <div className="flex flex-col py-10 m-20 gap-5">
       {loading && (
@@ -113,7 +165,7 @@ const fetchOnly = async () => {
       <Link href="/" className="px-20 py-5 self-start btn border-none text-gray-900 hover:bg-gray-400 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-gray-500">
         Return
       </Link>
-      <div className="text-3xl font-semibold mb-6 flex m-auto">Concurrency Test Case {params.id}</div>
+      <div className="text-3xl font-semibold mb-6 flex m-auto">Concurrency Test Case {params2.id}</div>
       <div className="text-xl mb-6 flex m-auto text-center">{testText}</div>
       <input
         maxLength="7"
@@ -127,7 +179,7 @@ const fetchOnly = async () => {
       <button onClick={fetchOnly} className="m-auto px-10 py-5 self-start btn border-none text-gray-900 hover:bg-green-400 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-green-500">
         Find Game
       </button>
-      {params2.id == 2 && showInputs && <div className='m-auto flex gap-4'>
+      {(params2.id == 2 || params2.id == 3) && showInputs && <div className='m-auto flex gap-4'>
           <input
             maxLength="100"
             type="text"
@@ -149,47 +201,67 @@ const fetchOnly = async () => {
 
       </div>
       } 
-      { params2.id == 2 && showInputs && <div className="grid grid-cols-3 items-center justify-center mx-10">
+      { (params2.id == 2 || params2.id == 3) && showInputs && !loading && <div className="grid grid-cols-3 items-center justify-center mx-10">
         <div className="text-xl mb-6 flex m-auto text-center w-[200px]">{transactionTime}</div>
         <div className="text-xl mb-6 flex m-auto mt-2 text-center">
           <div className='flex flex-row'>
-          <select
-          value={selectedIsolationLevel}
-          onChange={(e) => setSelectedIsolationLevel(e.target.value)}
-          className="border border-white rounded-md py-2 px-3 text-black w-[200px] text-center"
-        >
-          {isolationLevels.map((level) => (
-            <option key={level} value={level}>
-              {level}
-            </option>
-          ))}
-        </select>
-        <button onClick={handleStartTest} className="ml-5 w-[200px] btn border-none text-gray-900 hover:bg-green-40 flex items-center justify-center rounded-lg outline outline-1 bg-green-500">
+
+        <button onClick={handleStartTest} className="ml-5 w-[200px] py-2 btn border-none text-gray-900 hover:bg-green-40 flex items-center justify-center rounded-lg outline outline-1 bg-green-500">
         Update Test
       </button>
           </div>
-      </div>
-      
+      </div>   
       
         <div className="text-xl mb-6 flex m-auto text-center">{dbIsolationLevel}</div>
       </div>
-
-
       }
+
+{ (params2.id == 1) && showInputs && !loading && <div className="grid grid-cols-2 items-center justify-center mx-10">
+        <div className="text-xl mb-6 flex m-auto text-center w-[200px]">{transactionTime}</div>
+     
+        <div className="text-xl mb-6 flex m-auto text-center">{dbIsolationLevel}</div>
+      </div>
+      }
+
+
+
+{testStarted && logs && logs.length > 0 && (
+      <div>
+        <div className="text-3xl font-semibold mb-6 flex m-auto w-max">Logs</div>
+     <div className="w-full lg:w-2/3 m-auto overflow-x-auto">
+       <table className="min-w-full bg-gray-700">
+         <thead>
+           <tr>
+             <th className="py-2 px-4 bg-gray-600 border">Step</th>
+             <th className="py-2 px-4 bg-gray-600 border">Log Message</th>
+           </tr>
+         </thead>
+         <tbody>
+           {logs.map((log, index) => (
+             <tr key={index} className={index % 2 === 0 ? 'bg-gray-600' : ''}>
+               <td className="py-2 text-center border px-4 border-white">{index + 1}</td>
+               <td className="py-2 text-center border px-4 border-white">{log}</td>
+             </tr>
+           ))}
+         </tbody>
+       </table>
+     </div>
+      </div>
+   )}
       
-      {testStarted && games.main_node && games.main_node.games && (
+      {params2.id != 3 && testStarted && !loading && games.main_node && games.main_node.games && (
         <div className="w-full lg:w-2/3 m-auto">
           <div className="grid grid-cols-4 items-center p-4 border-b border-black">
             <div className="font-bold text-center text-xl">Field</div>
-            <div className="font-bold text-center text-xl">Main Node {params.id == 2 && <div>- Write -</div>}</div>
-            <div className="font-bold text-center text-xl">Node 1 {params.id == 2 && <div>- Read -</div>}</div>
-            <div className="font-bold text-center text-xl">Node 2 {params.id == 2 && <div>- Write -</div>}</div>
+            <div className="font-bold text-center text-xl">Main Node</div>
+            <div className="font-bold text-center text-xl">Node 1</div>
+            <div className="font-bold text-center text-xl">Node 2</div>
           </div>
           {Object.keys(games.main_node.games).map((field, i) => (
             <div key={i} className="grid grid-cols-4 items-center p-4 border-b border-black">
               <div className="font-bold text-center">{field}</div>
-              <div className="text-center">{games.main_node.games[field]}</div>
-              <div className="text-center">N/A</div> {/* Placeholder for Node 1 */}
+              <div className="text-center">{games.main_node?.games ? games.main_node.games[field] : 'N/A'}</div>
+              <div className="text-center">{games.node_1?.games ? games.node_1.games[field] : 'N/A'}</div> {/* Placeholder for Node 1 */}
               <div className="text-center">{games.node_2?.games ? games.node_2.games[field] : 'N/A'}</div>
             </div>
           ))}
