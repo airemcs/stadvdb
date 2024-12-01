@@ -189,4 +189,3 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
     }
   }
-  

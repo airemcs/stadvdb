@@ -1,42 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { main_node, node_1, node_2 } from '../../../../prisma/client';
+import { main_node, node_2 } from '../../../../prisma/client';
 
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
         const AppID = searchParams.get('appId');
         const testType = searchParams.get('testType');
+        const isolationLevel = searchParams.get('isolationLevel');
         const validIsolationLevels = ['Serializable', 'RepeatableRead', 'ReadCommitted', 'ReadUncommitted'];
-        const isolationLevel = validIsolationLevels[0]
         
         if (!AppID) {
             return NextResponse.json({ message: 'AppID is required' }, { status: 400 });
         }
+        const selectedIsolationLevel = validIsolationLevels.includes(isolationLevel) ? isolationLevel : undefined;
 
         const filters = { AppID: { contains: AppID } };
 
-        const readAll = async (transaction) => {
+        if (testType === "Read") {
+            const startTime = Date.now();
             const [mainGames, node2Games] = await Promise.all([
-                transaction.main_node ? transaction.main_node.games.findFirst({ where: filters }) : main_node.games.findFirst({ where: filters }),
-                node_2.games.findFirst({
-                    where: filters,
-                }),
+                main_node.$transaction(
+                    async (transaction) => {
+                        return transaction.games.findFirst({ where: filters });
+                    },
+                    { isolationLevel: selectedIsolationLevel }
+                ),
+                node_2.$transaction(
+                    async (transaction) => {
+                        return transaction.games.findFirst({ where: filters });
+                    },
+                    { isolationLevel: selectedIsolationLevel }
+                )
             ]);
+            const endTime = Date.now();
+            const duration = endTime - startTime;     
             const totalGames = {
                 main_node: { games: mainGames },
                 node_2: { games: node2Games },
             };
-            return totalGames;
-        }
 
-        if (testType === "Read") {
-            const response = await main_node.$transaction(
-                async (transaction) => {
-                    return await readAll(transaction);
-                },
-                { isolationLevel } 
-            );
-            return NextResponse.json(response);
+            return NextResponse.json({
+                totalGames,
+                transactionTime: `${duration} ms`,
+                isolationLevel
+            });
         }
     } catch (error) {
         console.error('Error fetching games:', error.message, error.stack);

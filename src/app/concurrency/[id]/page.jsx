@@ -1,7 +1,7 @@
 'use client';
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import React from "react";
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import React from 'react';
 
 export default function Concurrency({ params }) {
   const [testType, setTestType] = useState('');
@@ -10,40 +10,51 @@ export default function Concurrency({ params }) {
   const [games, setGames] = useState({});
   const [appId, setAppId] = useState('');
   const [loading, setLoading] = useState(false);
-  const params2 = React.use(params)
+  const [transactionTime, setTransactionTime] = useState('');
+  const [selectedIsolationLevel, setSelectedIsolationLevel] = useState('ReadCommitted'); // Default level
+  const isolationLevels = ['Serializable', 'RepeatableRead', 'ReadCommitted', 'ReadUncommitted'];
+  const [dbIsolationLevel, setdbIsolationLevel] = useState('ReadCommitted'); // Default level
+
+  const params2 = React.use(params);
   useEffect(() => {
     if (params2.id == 1) {
-      setTestType("Read");
-      setTestText("Concurrent transactions in two or more nodes are reading the same data item.");
+      setTestType('Read');
+      setTestText('Concurrent transactions in two or more nodes are reading the same data item.');
     }
     if (params2.id == 2) {
-      setTestType("Update/Read");
-      setTestText("At least one transaction in the three nodes is writing (update / delete) and the other concurrent transactions are reading the same data item.");
+      setTestType('Update/Read');
+      setTestText('At least one transaction in the three nodes is writing (update / delete) and the other concurrent transactions are reading the same data item.');
     }
     if (params2.id == 3) {
-      setTestType("Update");
-      setTestText("Concurrent transactions in two or more nodes are writing (update / delete) the same data item.");
+      setTestType('Update');
+      setTestText('Concurrent transactions in two or more nodes are writing (update / delete) the same data item.');
     }
   }, [params2]);
 
   const fetchGames = async () => {
+    setTestStarted(false)
     let response;
     try {
       setLoading(true);
       const queryParams = new URLSearchParams({
         appId: appId || '10',
-        testType
+        testType,
+        isolationLevel: selectedIsolationLevel 
       });
-  
+
       response = await fetch(`/api/testCases?${queryParams.toString()}`);
-      
+
       const data = await response.json();
-      setGames(data);
+      setTransactionTime(data.transactionTime);
+      setdbIsolationLevel(data.isolationLevel)
+      setGames(data.totalGames);
     } catch (error) {
-      console.error("Error fetching games:", error);
+      console.error('Error fetching games:', error);
     }
+    setTestStarted(true)
     setLoading(false);
   };
+
   const handleStartTest = () => {
     setTestStarted(true);
     fetchGames();
@@ -58,10 +69,13 @@ export default function Concurrency({ params }) {
           </div>
         </div>
       )}
-      <Link href="/" className="px-20 py-5 self-start btn border-none text-gray-900 hover:bg-gray-400 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-gray-500">
+      <Link
+        href="/"
+        className="px-20 py-5 self-start btn border-none text-gray-900 hover:bg-gray-400 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-gray-500"
+      >
         Return
       </Link>
-      <div className="text-3xl font-semibold mb-6 flex m-auto">Concurrency Test</div>
+      <div className="text-3xl font-semibold mb-6 flex m-auto">Concurrency Test Case {params.id}</div>
       <div className="text-xl mb-6 flex m-auto text-center">{testText}</div>
       <input
         maxLength="7"
@@ -70,14 +84,32 @@ export default function Concurrency({ params }) {
         name="Game"
         className="text-white text-xl py-3 bg-transparent m-auto outline-double outline-white text-center rounded"
         value={appId}
-        onChange={e => setAppId(e.target.value)}
+        onChange={(e) => setAppId(e.target.value)}
       />
+
       <button
         onClick={handleStartTest}
         className="m-auto px-10 py-5 self-start btn border-none text-gray-900 hover:bg-green-400 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-green-500"
       >
         Start Test
       </button>
+      <div className="grid grid-cols-3 items-center justify-center mx-10">
+        <div className="text-xl mb-6 flex m-auto text-center w-[200px]">{transactionTime}</div>
+        <div className="text-xl mb-6 flex m-auto mt-2 text-center w-[200px]">
+        <select
+          value={selectedIsolationLevel}
+          onChange={(e) => setSelectedIsolationLevel(e.target.value)}
+          className="border border-white rounded-md py-2 px-3 text-black w-[500px] text-center"
+        >
+          {isolationLevels.map((level) => (
+            <option key={level} value={level}>
+              {level}
+            </option>
+          ))}
+        </select>
+      </div>
+        <div className="text-xl mb-6 flex m-auto text-center">{dbIsolationLevel}</div>
+      </div>
       {testStarted && games.main_node && games.main_node.games && (
         <div className="w-full lg:w-2/3 m-auto">
           <div className="grid grid-cols-4 items-center p-4 border-b border-black">
