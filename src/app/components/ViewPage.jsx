@@ -3,10 +3,15 @@ import React, { useEffect, useState } from 'react';
 
 const ViewPage = ({ AppID }) => {
   const [gameData, setGameData] = useState(null);
+  
+  const [selectedNode, setSelectedNode] = useState(() => {
+    return window?.localStorage.getItem('selectedNode');
+  });
+  
   const fetchGameData = async () => {
     try {
       const gameId = AppID.id;
-      const response = await fetch(`/api/games?appId=${gameId}`);
+      const response = await fetch(`/api/games?appId=${gameId}&node=${selectedNode}`);
       
       if (!response.ok) {
         throw new Error(`Error fetching game: ${response.statusText}`);

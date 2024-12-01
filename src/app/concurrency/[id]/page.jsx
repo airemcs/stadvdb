@@ -36,60 +36,29 @@ export default function Concurrency({ params }) {
     }
   }, [params2]);
 
-  const fetchGames = async (useFetchOnly = false) => {  
-    setTestStarted(false);
-    let response;
+  const fetchgameDetails = async () => {
     try {
-        setLoading(true);
-        const queryParams = new URLSearchParams({
-            appId: appId || '10',
-            isolationLevel: selectedIsolationLevel,
-        });
+      const gameId = appId;
 
-        if (params2.id === 1 || useFetchOnly) {
-            setShowInputs(false);
-            response = await fetch(`/api/testCases?${queryParams.toString()}`);
-            setFetchOnlyA(false);  
-        } else if (params2.id == 2 && !useFetchOnly) {
-            response = await fetch(`/api/testCases`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id: appId,
-                    isolationLevel: selectedIsolationLevel,
-                    name: gameName,
-                    price: gamePrice,
-                }),
-            });
-        } else {
-          console.log("3")
-        }
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      const response = await fetch(`/api/games?appId=${gameId}`);
 
-        const data = await response.json();
-        setTransactionTime(data.transactionTime);
-        setdbIsolationLevel(data.isolationLevel);
-        setGames(data.totalGames);
-        setGameName(data.totalGames.main_node.games.Name);
-        setgamePrice(data.totalGames.main_node.games.Price);
-        setAppId(data.totalGames.main_node.games.AppID)
+      if (!response.ok) {
+        throw new Error(`Error fetching game: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      console.log(data.games[0].ReleaseDate)
+
     } catch (error) {
-        console.error('Error fetching games:', error);
+      console.error("Error fetching game:", error);
     }
-    setTestStarted(true);
-    setLoading(false);
-};
+  };
 
    
 
 const fetchOnly = async () => {
     await fetchGames(true); 
-      setShowInputs(true);
+    setShowInputs(true);
 };
 
 
@@ -149,6 +118,7 @@ const fetchOnly = async () => {
 
       </div>
       } 
+      
       { params2.id == 2 && showInputs && <div className="grid grid-cols-3 items-center justify-center mx-10">
         <div className="text-xl mb-6 flex m-auto text-center w-[200px]">{transactionTime}</div>
         <div className="text-xl mb-6 flex m-auto mt-2 text-center">

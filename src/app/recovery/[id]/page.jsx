@@ -5,8 +5,9 @@ import React from 'react';
 
 export default function Recovery({ params }) {
   const [testType, setTestType] = useState('read'); // for the RUD operations
-  const [node, setNode] = useState('main_node'); // for the RUD operations
-  const [status,setStatus] = useState('nada');
+  const [node, setNode] = useState('main_node'); // for the node
+  const [releasedYear,setReleasedYear] = useState();
+  const [status,setStatus] = useState([]);
 
   const [testText, setTestText] = useState('');
   const [testStarted, setTestStarted] = useState(false);
@@ -18,39 +19,68 @@ export default function Recovery({ params }) {
   const RUDoperations = ['read', 'update', 'delete'];
   const validNodes = ['main_node', 'node_1', 'node_2'];
 
+  const [gameDetails, setGameDetails] = useState({
+    gamename: '',
+    releaseDate: '',
+    price: 0.0,
+  });
+
   const params2 = React.use(params);
 
   useEffect(() => {
     if (params2.id == 1) {
       setTestText('One of the nodes is unavailable during the execution of a transaction and then eventually comes back online.');
     }
-    if (params2.id == 2) {
-      setTestText('Node 2 or Node 3 is unavailable during the execution of a transaction and then eventually comes back online.');
-    }
   }, [params2]);
 
   // for reading games
+  const fetchgameDetails = async () => {
+    try {
+      const gameId = appId;
+
+      const response = await fetch(`/api/specificgames?appId=${gameId}`,{
+        method: 'GET'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error fetching game: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      console.log(data.games.ReleaseDate)
+
+      const date = data.games.ReleaseDate.split('-');
+
+      console.log(Number(date[0]))
+
+      setReleasedYear(Number(date[0]));
+
+    } catch (error) {
+      console.error("Error fetching game:", error);
+    }
+  };
+
   const fetchGames = async () => {
     setTestStarted(false)
     let response;
 
     try {
       setLoading(true);
+      console.log(releasedYear);
       const queryParams = new URLSearchParams({
         appId: appId || '10',
         testType,
         isolationLevel: "ReadCommitted",
-        node: node
+        node: node,
+        releasedYear: releasedYear
       });
 
       response = await fetch(`/api/step3testCases?${queryParams.toString()}`,
         {method: 'GET'});
 
       const data = await response.json();
-      console.log(data.game);
 
-      setGame(data.game)
-      
+      setGame(data.game);
       setTransactionTime(data.transactionTime);
       setStatus(data.status);
 
@@ -61,15 +91,55 @@ export default function Recovery({ params }) {
     setLoading(false);
   };
 
+  const updateGame = async() => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/specificgames`, {
+        method: 'PUT',
+        
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          node: node,
+          id: appId, // Make sure appId is defined and valid
+          name: gameDetails.gamename,
+          price: gameDetails.price
+        }),
+      });
+  
+      const data = await response.json();
+      console.log(data);
+      
+      if (response.ok) {
+        console.log('Games saved successfully:', data);
+        setProposalFields(data.proposal); 
+        isConfirmOpen(false);
+      } else {
+        console.error('Error saving games:', data.message);
+      }
+    } catch (error) {
+      console.error('Error during save games process:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStartTest = () => {
     setTestStarted(true);
     
     if(testType == "read"){
-        console.log("this was run")
+        console.log("reading...")
+        fetchgameDetails();
         fetchGames();
+    }else if(testType == "update"){
+        console.log("updating...")
+        updateGame();
     }
     
   };
+
+  
 
   return (
     <div className="flex flex-col py-10 m-20 gap-5">
@@ -136,7 +206,10 @@ export default function Recovery({ params }) {
       </div>
         <div>
           <div className="text-xl mb-6 flex m-auto text-center">{testType}</div>
-          <div className="text-xl mb-6 flex m-auto text-center">{status}</div>
+          <div className="text-xl mb-3 flex m-auto text-center"> Logs: </div>
+          {status.map((item, index) => (
+            <div key={index} className="text-md mb-2 flex">{index + 1} - {item}</div>
+          ))}
           <div className="text-xl mb-6 flex m-auto text-center">{node}</div>
           
         </div>
@@ -203,7 +276,6 @@ export default function Recovery({ params }) {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-6">
-          
           <div>
             <p className="text-gray-700 font-semibold text-2xl italic">Website</p>
             {game.Website && <p clas text-lgs className="text-gray-900 break-words">{game.Website}</p>}
@@ -227,6 +299,45 @@ export default function Recovery({ params }) {
       </div>
       )}
 
+
+      {game && testType === 'update' &&(
+          <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg space-y-8">
+            <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Price
+              </div>
+              <input 
+                type="text" 
+                value={gameDetails.price} 
+                className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
+                  onChange={(e) => 
+                    setGameDetails((prevDetails) => ({
+                      ...prevDetails,       // Copy all existing properties
+                      price: e.target.value // Override the specific property
+                    }))                  
+                  } 
+              />
+            </div>
+            <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Name: 
+              </div>
+              <input 
+                type="text" 
+                value={gameDetails.gamename} 
+                className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
+                  onChange={(e) => 
+                    setGameDetails((prevDetails) => ({
+                      ...prevDetails,       // Copy all existing properties
+                      gamename: e.target.value // Override the specific property
+                    }))                  
+                  } 
+              />
+            </div>
+          
+          </div>
+
+      )}
       
     </div>
   );
