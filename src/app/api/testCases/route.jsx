@@ -20,7 +20,7 @@ export async function GET(request) {
             return NextResponse.json({ message: 'AppID is required' }, { status: 400 });
         }
 
-        if (testType == 2 || testType == 3) {
+        if (testType == 2 || testType == 3 || testType == 1) {
             filters = { AppID: AppID };
             logs.push('Strict AppID filter applied');
         } else {
