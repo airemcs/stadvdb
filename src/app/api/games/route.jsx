@@ -152,40 +152,41 @@ export async function PUT(request) {
       );
     }
   }
-  export async function DELETE(request) {
-
-    const body = await request.json();
-
-    console.log(body.id);
-    console.log(body.node);
   
-    let currentNode = body.node; 
+export async function DELETE(request) {
 
-    if (body.node === "main_node") {
-        currentNode = main_node;
-    } else if (body.node === "Node1") {
-        currentNode = node_1;
-    } else if (body.node === "Node2") {
-        currentNode = node_2;
-   }
-  
-    try {
-      const deletegame1 = await main_node.games.delete({
-        where: { AppID: body.id }
-      });
-      
-      if(body.node === "Node2"){
-        const deletegame2 = await node_2.games.delete({
-          where: { AppID: body.id }
-      });
-        
-      }
+  const body = await request.json();
 
-      return NextResponse.json(deletegame1);
-  
-    } catch (error) {
-      console.error('Error deleting game:', error);
-      console.error('Error deleting games:', error.message, error.stack);
-      return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
-    }
+  console.log(body.id);
+  console.log(body.node);
+
+  let currentNode = body.node; 
+
+  if (body.node === "main_node") {
+      currentNode = main_node;
+  } else if (body.node === "Node1") {
+      currentNode = node_1;
+  } else if (body.node === "Node2") {
+      currentNode = node_2;
   }
+
+  try {
+    const deletegame1 = await main_node.games.delete({
+      where: { AppID: body.id }
+    });
+    
+    if(body.node === "Node2"){
+      const deletegame2 = await node_2.games.delete({
+        where: { AppID: body.id }
+    });
+      
+    }
+
+    return NextResponse.json(deletegame1);
+
+  } catch (error) {
+    console.error('Error deleting game:', error);
+    console.error('Error deleting games:', error.message, error.stack);
+    return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
+  }
+}

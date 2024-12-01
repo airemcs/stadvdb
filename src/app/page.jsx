@@ -186,6 +186,14 @@ export default function Home() {
             <Link href = "/concurrency/2" className="border border-white rounded-md py-[9px] px-3 text-black">Case 2</Link>
             <Link href = "/concurrency/3" className="border border-white rounded-md py-[9px] px-3 text-black">Case 3</Link>
           </div>
+
+          <div className="mt-5 text-xl font-bold">
+            Global recovery and failure:
+          </div>
+          <div className="mt-5 gap-4 flex">
+            <Link href = "/recovery/1" className="border border-white rounded-md py-[9px] px-3 text-black">Case 1/2</Link>
+            <Link href = "/recovery/2" className="border border-white rounded-md py-[9px] px-3 text-black">Case 3/4</Link>
+          </div>
         </div>
 
         <div className='flex flex-wrap items-center space-x-4 mt-5'>

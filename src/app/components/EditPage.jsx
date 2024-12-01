@@ -44,6 +44,7 @@ const EditPage = ({appId}) => {
       try {
         const response = await fetch(`/api/games`, {
           method: 'PUT',
+          
           headers: {
             'Content-Type': 'application/json',
           },
@@ -152,8 +153,6 @@ const EditPage = ({appId}) => {
   if (!gameDetails) {
     return <div>Loading...</div>; 
   }
-
-  console.log(gameDetails);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-black-200 p-4">
