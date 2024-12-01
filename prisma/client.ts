@@ -24,6 +24,4 @@ const node_2 = new PrismaClient({
   },
 });
 
-
-
-export { main_node, node_2, node_1 };
+export { main_node, node_1, node_2 };

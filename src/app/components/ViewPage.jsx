@@ -3,11 +3,10 @@ import React, { useEffect, useState } from 'react';
 
 const ViewPage = ({ AppID }) => {
   const [gameData, setGameData] = useState(null);
-  
   const [selectedNode, setSelectedNode] = useState(() => {
     return window?.localStorage.getItem('selectedNode');
   });
-  
+
   const fetchGameData = async () => {
     try {
       const gameId = AppID.id;
