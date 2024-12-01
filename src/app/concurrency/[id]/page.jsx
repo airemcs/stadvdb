@@ -113,19 +113,8 @@ export default function Concurrency({ params }) {
       {testStarted && games.main_node && games.main_node.games && (
         <div className="w-full lg:w-2/3 m-auto">
           <div className="grid grid-cols-4 items-center p-4 border-b border-black">
-            <div className="font-bold text-center text-xl">Field</div>
-            <div className="font-bold text-center text-xl">Main Node</div>
-            <div className="font-bold text-center text-xl">Node 1</div>
-            <div className="font-bold text-center text-xl">Node 2</div>
+            
           </div>
-          {Object.keys(games.main_node.games).map((field, i) => (
-            <div key={i} className="grid grid-cols-4 items-center p-4 border-b border-black">
-              <div className="font-bold text-center">{field}</div>
-              <div className="text-center">{games.main_node.games[field]}</div>
-              <div className="text-center">N/A</div> {/* Placeholder for Node 1 */}
-              <div className="text-center">{games.node_2?.games ? games.node_2.games[field] : 'N/A'}</div>
-            </div>
-          ))}
         </div>
       )}
     </div>

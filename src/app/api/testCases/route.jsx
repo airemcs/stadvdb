@@ -4,6 +4,7 @@ import { main_node, node_2 } from '../../../../prisma/client';
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
+        
         const AppID = searchParams.get('appId');
         const testType = searchParams.get('testType');
         const isolationLevel = searchParams.get('isolationLevel');
