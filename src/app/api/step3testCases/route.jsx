@@ -358,6 +358,7 @@ export async function GET(request) {
 }
 
 export async function PUT(request) {
+    
     try {
         let status = []
         const { searchParams } = new URL(request.url);
