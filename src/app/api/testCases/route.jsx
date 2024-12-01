@@ -6,33 +6,36 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const AppID = searchParams.get('appId');
         const testType = searchParams.get('testType');
-        console.log(testType)
+        const validIsolationLevels = ['Serializable', 'RepeatableRead', 'ReadCommitted', 'ReadUncommitted'];
+        const isolationLevel = validIsolationLevels[0]
+        
         if (!AppID) {
             return NextResponse.json({ message: 'AppID is required' }, { status: 400 });
         }
 
         const filters = { AppID: { contains: AppID } };
-        const readAll = async () =>{
+
+        const readAll = async (transaction) => {
             const [mainGames, node2Games] = await Promise.all([
-                main_node.games.findFirst({
-                    where: filters,
-                }),
-              //  node_1.games.findMany({
-              //      where: filters,
-               // }),
+                transaction.main_node ? transaction.main_node.games.findFirst({ where: filters }) : main_node.games.findFirst({ where: filters }),
                 node_2.games.findFirst({
                     where: filters,
                 }),
             ]);
             const totalGames = {
-                main_node: {games: mainGames },
-             //   node_1: { games: node1Games },
+                main_node: { games: mainGames },
                 node_2: { games: node2Games },
             };
-            return (totalGames);
+            return totalGames;
         }
+
         if (testType === "Read") {
-            const response = await readAll();
+            const response = await main_node.$transaction(
+                async (transaction) => {
+                    return await readAll(transaction);
+                },
+                { isolationLevel } 
+            );
             return NextResponse.json(response);
         }
     } catch (error) {
