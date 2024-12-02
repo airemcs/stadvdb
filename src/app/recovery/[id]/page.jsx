@@ -56,6 +56,7 @@ export default function Recovery({ params }) {
       if (!firstresponse.ok) {
         throw new Error(`Error fetching game: ${firstresponse.statusText}`);
       }
+
       const data1 = await firstresponse.json();
 
       console.log(data1.games.ReleaseDate)
@@ -80,7 +81,7 @@ export default function Recovery({ params }) {
 
       const data2 = await secondresponse.json();
 
-      console.log(data2.nodeRead)
+      console.log(data2)
       setNodeRead(data2.nodeRead)
       setGame(data2.game);
       setTransactionTime(data2.transactionTime);
@@ -88,6 +89,7 @@ export default function Recovery({ params }) {
 
     } catch (error) {
       console.error("Error fetching game:", error);
+      setStatus(['Games does not exist']);
     }
 
     setTestStarted(true);
@@ -144,14 +146,13 @@ export default function Recovery({ params }) {
 
       if (response.ok) {
         console.log('Games saved successfully:', data);
-        setProposalFields(data.proposal); 
-        isConfirmOpen(false);
 
       } else {
         console.error('Error saving games:', data.message);
       }
     } catch (error) {
       console.error('Error during save games process:', error);
+      setStatus(['Games does not exist']);
     } finally {
       setLoading(false);
       setShowLogs(true);
@@ -208,14 +209,13 @@ export default function Recovery({ params }) {
 
       if (response.ok) {
         console.log('Games saved successfully:', data);
-        setProposalFields(data.proposal); 
-        isConfirmOpen(false);
 
       } else {
         console.error('Error saving games:', data.message);
       }
     } catch (error) {
-      console.error('Error during save games process:', error);
+      console.error('Error during delete games process:', error);
+      setStatus(['Games does not exist']);
     } finally {
       setLoading(false);
       setShowLogs(true);
@@ -224,11 +224,12 @@ export default function Recovery({ params }) {
 
   const handleStartTest = () => {
     setTestStarted(true);
-    
+    setStatus([]);
+
     if(testType == "read"){
         console.log("reading...")
         fetchgameDetails();
-          
+        
     }else if(testType == "update"){
         console.log("updating...")
         updateGame();
@@ -236,6 +237,7 @@ export default function Recovery({ params }) {
         console.log("deleting...")
         deleteGame();
         setGame({});
+        
     }
   };
 
@@ -315,7 +317,7 @@ export default function Recovery({ params }) {
           </tr>
         ))}
 
-        <div className="text-xl mt-10 flex text-center"> Transaction: {testType}</div>
+        <div className="text-xl mt-10 flex text-center font-bold"> Transaction: {testType}</div>
       </div>
       
       </div>
@@ -373,23 +375,8 @@ export default function Recovery({ params }) {
 
 
       {game && testType === 'update' &&(
-          <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg space-y-8">
-            <div className="flex-1">
-              <div className='text-black font-bold'>
-                  Price
-              </div>
-              <input 
-                type="text" 
-                value={gameDetails.price} 
-                className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                  onChange={(e) => 
-                    setGameDetails((prevDetails) => ({
-                      ...prevDetails,       // Copy all existing properties
-                      price: e.target.value // Override the specific property
-                    }))                  
-                  } 
-              />
-            </div>
+          <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-lg space-y-8 justify-center m-auto">
+           
             <div className="flex-1">
               <div className='text-black font-bold'>
                   Name: 
@@ -406,6 +393,24 @@ export default function Recovery({ params }) {
                   } 
               />
             </div>
+
+            <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Price
+              </div>
+              <input 
+                type="text" 
+                value={gameDetails.price} 
+                className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
+                  onChange={(e) => 
+                    setGameDetails((prevDetails) => ({
+                      ...prevDetails,       // Copy all existing properties
+                      price: e.target.value // Override the specific property
+                    }))                  
+                  } 
+              />
+            </div>
+            
           
           </div>
 
