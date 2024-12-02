@@ -192,7 +192,7 @@ export default function Home() {
           </div>
           <div className="mt-5 gap-4 flex">
             <Link href = "/recovery/1" className="border border-white rounded-md py-[9px] px-3 text-black">Case 1/2</Link>
-            <Link href = "/recovery/2" className="border border-white rounded-md py-[9px] px-3 text-black">Case 3/4</Link>
+            <Link href = "/failure/1" className="border border-white rounded-md py-[9px] px-3 text-black">Case 3/4</Link>
           </div>
         </div>
 
