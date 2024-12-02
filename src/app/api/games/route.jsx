@@ -197,8 +197,11 @@ export async function DELETE(request) {
 
   let currentNode = body.node; 
 
-  console.log("this is the node"+ body.node)
-  console.log(typeof body.id);
+  const year = body.id.releasedDate.split('-');
+  console.log(parseInt(year[0]));
+
+  console.log(body.id.id);
+
   console.log(body.node === "Node2");
 
   let deletegame1;
@@ -216,20 +219,20 @@ export async function DELETE(request) {
     
     console.log("deleting in main");
     const deletegame = await main_node.games.delete({
-      where: { AppID: body.id }
+      where: { AppID: body.id.id }
     });
 
-    if (body.node === "Node1" || body.node === "main_node"  ){
-      console.log("deleting in node 2");
+    if (body.node === "Node1" ||  parseInt(year[0]) < 2010){
+      console.log("deleting in node 1");
       deletegame1 = await node_1.games.delete({
-        where: { AppID: body.id }
+        where: { AppID: body.id.id }
       });
     }
 
-    if (body.node === "Node2" || body.node === "main_node" ){
+    if (body.node === "Node2" || parseInt(year[0]) >= 2010){
       console.log("deleting in node 2");
       deletegame2 = await node_2.games.delete({
-        where: { AppID: body.id }
+        where: { AppID: body.id.id }
       });
     }
 

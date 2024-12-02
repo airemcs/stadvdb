@@ -15,7 +15,7 @@ export default function Home() {
   const [totalGames, setTotalGames] = useState("");
   
   const [showModal, setShowModal] = useState(false); // Modal state
-  const [gameToDelete, setGameToDelete] = useState(null);
+  const [gameToDelete, setGameToDelete] = useState({});
   
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== "undefined") {
@@ -55,7 +55,7 @@ export default function Home() {
       if (response.ok) {
         console.log('Game deleted successfully:', data);
         // Update the local state to remove the deleted game
-        setGames((prevGames) => prevGames.filter((game) => game.AppID !== gameToDelete));
+        setGames((prevGames) => prevGames.filter((game) => game.AppID !== gameToDelete.id));
         setShowModal(false); // Close the modal after deletion
         setLoading(false);
       } else {
@@ -280,7 +280,7 @@ export default function Home() {
                     estimatedOwners={game.EstimatedOwners}
                     node = {selectedNode}
                     onDelete={() => {
-                      setGameToDelete(game.AppID);
+                      setGameToDelete({id:game.AppID,releasedDate:game.ReleaseDate});
                       setShowModal(true);}} // Correctly pass the parameters
                   />
                 </Link>
