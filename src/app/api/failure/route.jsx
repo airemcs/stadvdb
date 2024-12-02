@@ -63,34 +63,44 @@ export async function PUT(request) {
       }
   
       // Update the specified node
+      const updatedData = {
+        ...(Name && { Name }),
+        ...(Price && { Price }),
+      };
+  
       const updatedGame = await selectedNode.games.update({
         where: { AppID },
-        data: {
-          ...(Name && { Name }),
-          ...(Price && { Price }),
-        },
+        data: updatedData,
       });
   
-      // Also update the main_node
-      const mainNodeGame = await main_node.games.findFirst({ where: { AppID } });
-      if (mainNodeGame) {
-        await main_node.games.update({
-          where: { AppID },
-          data: {
-            ...(Name && { Name }),
-            ...(Price && { Price }),
-          },
-        });
-        console.log('Main node updated successfully.');
-      } else {
-        console.warn('Game not found in main node. Skipping update for main node.');
-      }
+      console.log(`Updated game in ${node}:`, updatedGame);
+  
+      // Synchronize changes across all nodes
+      await synchronizeAcrossNodes(AppID, updatedData);
   
       return NextResponse.json({ game: updatedGame });
   
     } catch (error) {
       console.error('Error updating game details:', error.message, error.stack);
       return NextResponse.json({ error: 'Failed to update game details' }, { status: 500 });
+    }
+  }
+  
+  async function synchronizeAcrossNodes(AppID, data) {
+    const nodes = [main_node, node_1, node_2];
+    
+    for (const node of nodes) {
+      const game = await node.games.findFirst({ where: { AppID } });
+      
+      if (game) {
+        await node.games.update({
+          where: { AppID },
+          data,
+        });
+        console.log(`Synchronized game in ${node.name}:`, game);
+      } else {
+        console.warn(`Game not found in ${node.name}. Skipping update.`);
+      }
     }
   }
   
