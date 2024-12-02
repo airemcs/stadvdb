@@ -7,7 +7,6 @@ import GameRow from "./components/GameRow";
 
 export default function Home() {
   const [games, setGames] = useState([]);
-  const [currentPage, setCurrentPage] = useState(() => Number(window?.localStorage.getItem('currentPage')) || 1);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState("");
   const [filters, setFilters] = useState({ appId: '', gameName: '', date: '', price: '', requiredAge: '', estimatedOwners: '' });
@@ -17,8 +16,19 @@ export default function Home() {
   
   const [showModal, setShowModal] = useState(false); // Modal state
   const [gameToDelete, setGameToDelete] = useState(null);
+  
+  const [currentPage, setCurrentPage] = useState(() => {
+    if (typeof window !== "undefined") {
+      return Number(window.localStorage.getItem('currentPage')) || 1;
+    }
+    return 1; // Default value for SSR
+  });
+  
   const [selectedNode, setSelectedNode] = useState(() => {
-    return window?.localStorage.getItem('selectedNode') || 'main_node';
+    if (typeof window !== "undefined") {
+      return window.localStorage.getItem('selectedNode') || 'main_node';
+    }
+    return 'main_node'; // Default value for SSR
   });
 
   const gamesPerPage = 6;
