@@ -1,53 +1,67 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import React from 'react';
 
-function UpdateComponent({ gameData }) {
+function UpdateComponent({ gameData, testType, onUpdate }) {
+
+  const [formData, setFormData] = useState({
+    AppID: gameData.AppID || '',
+    Name: gameData.Name || '',
+    Price: gameData.Price || '',
+  });
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = () => {
+    if (onUpdate) {
+      onUpdate(formData);
+    }
+  };
+
   return (
     <div className="text-center mt-5 p-4 border border-gray-300 rounded-md">
       <p className="text-lg font-bold">Update Component</p>
       <div className="mt-4">
-        <div><strong>App ID:</strong> {gameData.AppID}</div>
-        <div><strong>Name:</strong> {gameData.Name}</div>
-        <div><strong>Release Date:</strong> {gameData.ReleaseDate}</div>
-        <div><strong>Estimated Owners:</strong> {gameData.EstimatedOwners}</div>
-        <div><strong>Peak CCU:</strong> {gameData.PeakCCU}</div>
-        <div><strong>Required Age:</strong> {gameData.RequiredAge}</div>
-        <div><strong>Price:</strong> {gameData.Price}</div>
-        <div><strong>DLC Count:</strong> {gameData.DLCCount}</div>
-        <div><strong>Website:</strong> <a href={gameData.Website} target="_blank">{gameData.Website}</a></div>
-        <div><strong>Support Email:</strong> {gameData.SupportEmail}</div>
-        <div><strong>Recommends:</strong> {gameData.Recommends}</div>
-        <div><strong>Average Playtime:</strong> {gameData.AveragePlaytime}</div>
-        <div><strong>Median Playtime:</strong> {gameData.MedianPlaytime}</div>
-        <div><strong>Publishers:</strong> {gameData.Publishers}</div>
-        <div><strong>Categories:</strong> {gameData.Categories}</div>
-        <div><strong>Genres:</strong> {gameData.Genres}</div>
-        <div><strong>Tags:</strong> {gameData.Tags}</div>
+        {testType === 'update' ? (
+          <>
+            <div>
+              <strong>Name:</strong>
+              <input
+                type="text"
+                placeholder={gameData.Name}
+                value={formData.Name}
+                onChange={(e) => handleInputChange('Name', e.target.value)}
+                className="border p-2 ml-2 rounded mb-2"
+              />
+            </div>
+            <div>
+              <strong>Price:</strong>
+              <input
+                type="text"
+                placeholder={gameData.Price}
+                value={formData.Price}
+                onChange={(e) => handleInputChange('Price', e.target.value)}
+                className="border p-2 ml-2 rounded"
+              />
+            </div>
+            <button
+              onClick={handleSave}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Save
+            </button>
+          </>
+        ) : (
+          <>
+            <div><strong>App ID:</strong> {gameData.AppID}</div>
+            <div><strong>Name:</strong> {gameData.Name}</div>
+            <div><strong>Price:</strong> {gameData.Price}</div>
+          </>
+        )}
       </div>
-    </div>
-  );
-}
-
-function DeleteComponent({ id, gameData, onConfirm }) {
-  return (
-    <div className="text-center mt-5 p-4 border border-red-300 rounded-md">
-      <p className="text-lg font-bold text-red-600">Delete Component</p>
-      <p>App ID: {id}</p>
-      <p className="text-red-600">The application will be deleted.</p>
-      <div>
-        <strong>Name:</strong> {gameData.Name}
-      </div>
-      <div>
-        <strong>Release Date:</strong> {gameData.ReleaseDate}
-      </div>
-      <div>
-        <strong>Price:</strong> {gameData.Price}
-      </div>
-      <button onClick={onConfirm} className="mt-4 text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md">
-        Confirm Deletion
-      </button>
     </div>
   );
 }
@@ -60,7 +74,11 @@ export default function Failure({ params: paramsPromise }) {
   const [nodeType, setNodeType] = useState('main_node');
   const [testStarted, setTestStarted] = useState(false);
   const [game, setGame] = useState(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [nodeStatuses, setNodeStatuses] = useState({
+    main_node: true,
+    node_1: true,
+    node_2: true,
+  });
 
   const operations = ['delete', 'update'];
   const validNodes = ['main_node', 'node_1', 'node_2'];
@@ -73,17 +91,17 @@ export default function Failure({ params: paramsPromise }) {
       setLoading(true);
       const queryParams = new URLSearchParams({
         appID: appID || '10',
-        node: nodeType
+        node: nodeType,
       });
 
       response = await fetch(`/api/failure?${queryParams.toString()}`, {
-        method: 'GET'
+        method: 'GET',
       });
 
       const data = await response.json();
       setGame(data.game);
     } catch (error) {
-      console.error('Error fetching games:', error);
+      console.error('Error fetching game:', error);
     }
 
     setTestStarted(true);
@@ -91,39 +109,105 @@ export default function Failure({ params: paramsPromise }) {
   };
 
   const handleStartTest = () => {
-    if (testType === 'delete') {
-      // Show the confirmation prompt for delete
-      setShowConfirmation(true);
-    } else {
-      // Fetch the game data for update or other tests
+    console.log('Node statuses:', nodeStatuses);
+    if (testType === 'update' && appID) {
       fetchGame();
     }
   };
 
-  const handleConfirmDeletion = () => {
-    // You can implement deletion logic here
-    console.log("Confirmed Deletion for App ID:", appID);
-    setShowConfirmation(false);
-    setGame(null);
+  const handleUpdate = async (updatedGame) => {
+    console.log('Updated game data:', updatedGame);
+  
+    try {
+      const queryParams = new URLSearchParams({
+        node: nodeType,
+        nodeStatuses: JSON.stringify(nodeStatuses), // Pass node statuses
+      });
+  
+      const response = await fetch(`/api/failure?${queryParams.toString()}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedGame),
+      });
+  
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Error updating game:', error);
+        alert('Failed to update game: ' + error.message);
+        return;
+      }
+  
+      const data = await response.json();
+      console.log('Game updated successfully:', data.game);
+      setGame(data.game);
+      alert('Game updated successfully!');
+    } catch (error) {
+      console.error('Error making update request:', error);
+      alert('An error occurred while updating the game.');
+    }
+  };
+  
+
+
+  const toggleNodeStatus = (node) => {
+    setNodeStatuses((prevState) => ({
+      ...prevState,
+      [node]: !prevState[node],
+    }));
   };
 
   return (
     <>
       <div className="flex flex-col py-10 m-20 gap-5">
-        {loading && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-            <div className="bg-white p-5 rounded-md shadow-xl">
-              <p className="text-gray-800">Loading...</p>
-            </div>
-          </div>
-        )}
-        <Link href="/" className="px-20 py-5 self-start btn border-none text-gray-900 hover:bg-gray-400 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-gray-500">
+        <Link
+          href="/"
+          className="px-20 py-5 self-start btn border-none text-gray-900 hover:bg-gray-400 h-10 flex items-center justify-center rounded-lg outline outline-1 bg-gray-500"
+        >
           Return
         </Link>
         <div className="text-3xl font-semibold mb-6 flex m-auto">Case #3 Simulation</div>
-        <div className="text-xl mb-6 flex m-auto text-center">
-          The failure in writing to the central node when attempting to replicate the transaction from Node 2 or Node 3. [TODO: Remove me, 10090]
+        <div className="text-xl flex m-auto text-center">
+          The failure in writing to the central node when attempting to replicate the transaction from Node 2 or Node 3.
         </div>
+
+        <div className="flex justify-center items-center">
+          {validNodes.map((node) => (
+            <div
+              key={node}
+              className={`flex items-center space-x-4 p-4 rounded-lg transition duration-300 ${
+                nodeStatuses[node] ? 'text-green-500 font-bold' : 'text-red-500'
+              }`}
+            >
+              <label htmlFor={node} className="text-lg capitalize">
+                {node.replace('_', ' ')}
+              </label>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  id={node}
+                  checked={nodeStatuses[node]}
+                  onChange={() => toggleNodeStatus(node)}
+                  className="hidden"
+                />
+                <div
+                  className={`w-14 h-8 bg-gray-300 rounded-full p-1 cursor-pointer transition duration-300 ${
+                    nodeStatuses[node] ? 'bg-green-500' : 'bg-red-500'
+                  }`}
+                  onClick={() => toggleNodeStatus(node)}
+                >
+                  <div
+                    className={`w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 ${
+                      nodeStatuses[node] ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="flex flex-row items-center justify-center gap-x-8 h-10">
           <input
             maxLength="7"
@@ -132,49 +216,48 @@ export default function Failure({ params: paramsPromise }) {
             className="text-white text-lg py-3 bg-transparent m-auto outline outline-1 outline-white text-center rounded w-full h-full"
             onChange={(e) => setAppID(e.target.value)}
           />
-          <select value={testType} onChange={(e) => setTestType(e.target.value)} className="border border-white rounded-md h-full text-black w-full text-center basis-1/2">
+          <select
+            value={testType}
+            onChange={(e) => setTestType(e.target.value)}
+            className="border border-white rounded-md h-full text-black w-full text-center basis-1/2"
+          >
             {operations.map((level) => (
               <option key={level} value={level}>
                 {level}
               </option>
             ))}
           </select>
-          <select value={nodeType} onChange={(e) => setNodeType(e.target.value)} className="border border-white rounded-md h-full text-black w-full text-center basis-1/2">
+          <select
+            value={nodeType}
+            onChange={(e) => setNodeType(e.target.value)}
+            className="border border-white rounded-md h-full text-black w-full text-center basis-1/2"
+          >
             {validNodes.map((level) => (
               <option key={level} value={level}>
                 {level}
               </option>
             ))}
           </select>
-          <button onClick={handleStartTest} className="w-full h-full text-white hover:bg-green-400 flex items-center justify-center rounded-lg outline outline-1 bg-green-500">
+          <button
+            onClick={handleStartTest}
+            className={`w-full h-full flex items-center justify-center rounded-lg outline outline-1 ${
+              nodeStatuses[nodeType] ? 'bg-green-500 hover:bg-green-400 text-white' : 'bg-red-500 text-black cursor-not-allowed hover:bg-red-500'
+            } transition duration-300`}
+            disabled={!nodeStatuses[nodeType]}  // Disable the button if the node is unavailable
+          >
             Start Test
           </button>
-          {testType === 'update' && (
-            <button
-              onClick={fetchGame}
-              className="w-full h-full text-white hover:bg-blue-400 flex items-center justify-center rounded-lg outline outline-1 bg-blue-500"
-            >
-              Update Table
-            </button>
-          )}
         </div>
 
-        {game && testType === 'update' && <UpdateComponent gameData={game} />}
-        {testType === 'delete' && game && !showConfirmation && <DeleteComponent id={appID} gameData={game} onConfirm={handleConfirmDeletion} />}
-        {showConfirmation && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-            <div className="bg-white p-5 rounded-md shadow-xl">
-              <p className="text-gray-800">Are you sure you want to delete this application?</p>
-              <p><strong>Name:</strong> {game.Name}</p>
-              <p><strong>Release Date:</strong> {game.ReleaseDate}</p>
-              <p><strong>Price:</strong> {game.Price}</p>
-              <div className="mt-4">
-                <button onClick={handleConfirmDeletion} className="mr-4 bg-red-600 text-white px-4 py-2 rounded-md">Yes, Delete</button>
-                <button onClick={() => setShowConfirmation(false)} className="bg-gray-600 text-white px-4 py-2 rounded-md">Cancel</button>
-              </div>
-            </div>
-          </div>
+        {testStarted && game && (
+          <UpdateComponent
+            gameData={game}
+            testType={testType}
+            onUpdate={handleUpdate}
+          />
         )}
+
+        {loading && <p className="text-center text-gray-500">Loading...</p>}
       </div>
     </>
   );
