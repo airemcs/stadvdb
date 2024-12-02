@@ -113,7 +113,7 @@ const EditPage = ({appId}) => {
     try {
       const gameId = appId;
 
-      const response = await fetch(`/api/games?appId=${gameId}`);
+      const response = await fetch(`/api/games?appId=${gameId}&node=${selectedNode}`);
 
       if (!response.ok) {
         throw new Error(`Error fetching game: ${response.statusText}`);
