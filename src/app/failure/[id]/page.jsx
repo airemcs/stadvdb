@@ -118,10 +118,30 @@ export default function Failure({ params: paramsPromise }) {
   const handleUpdate = async (updatedGame) => {
     console.log('Updated game data:', updatedGame);
   
+    // Determine secondary and main node logic
+    const isMainNode = nodeType === 'main_node';
+    const secondaryNodes = validNodes.filter((node) => node !== 'main_node' && node !== nodeType);
+  
+    // Check secondary nodes' availability when updating from main_node
+    if (isMainNode) {
+      const unavailableNodes = secondaryNodes.filter((node) => !nodeStatuses[node]);
+  
+      if (unavailableNodes.length > 0) {
+        alert(`Update failed: The following nodes are unavailable: ${unavailableNodes.join(', ')}`);
+        return;
+      }
+    }
+  
+    // Check main node availability when updating from secondary node
+    if (!isMainNode && !nodeStatuses['main_node']) {
+      alert('Update failed: The main node is unavailable.');
+      return;
+    }
+  
     try {
       const queryParams = new URLSearchParams({
         node: nodeType,
-        nodeStatuses: JSON.stringify(nodeStatuses), // Pass node statuses
+        nodeStatuses: JSON.stringify(nodeStatuses),
       });
   
       const response = await fetch(`/api/failure?${queryParams.toString()}`, {
@@ -148,8 +168,6 @@ export default function Failure({ params: paramsPromise }) {
       alert('An error occurred while updating the game.');
     }
   };
-  
-
 
   const toggleNodeStatus = (node) => {
     setNodeStatuses((prevState) => ({
