@@ -201,7 +201,7 @@ export async function DELETE(request) {
   console.log(typeof body.id);
   console.log(body.node === "Node2");
 
-  //let deletegame1;
+  let deletegame1;
   let deletegame2;
 
   if (body.node === "main_node") {
@@ -219,14 +219,14 @@ export async function DELETE(request) {
       where: { AppID: body.id }
     });
 
-    if (body.node === "Node1"){
+    if (body.node === "Node1" || body.node === "main_node"  ){
       console.log("deleting in node 2");
       deletegame1 = await node_1.games.delete({
         where: { AppID: body.id }
       });
     }
 
-    if (body.node === "Node2"){
+    if (body.node === "Node2" || body.node === "main_node" ){
       console.log("deleting in node 2");
       deletegame2 = await node_2.games.delete({
         where: { AppID: body.id }
