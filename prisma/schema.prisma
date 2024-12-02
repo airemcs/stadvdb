@@ -31,3 +31,26 @@ model Games {
 
   @@map("Games")
 }
+
+model Temp {
+  AppID           String  @id
+  Name            String @db.LongText
+  ReleaseDate     String? @db.LongText
+  EstimatedOwners String? @db.LongText
+  PeakCCU         Int     @default(0)
+  RequiredAge     Int     @default(0)
+  Price           Float   @default(0.0)
+  DLCCOUNT        Int     @default(0)
+  Website         String? @db.LongText
+  SupportEmail    String? @db.LongText
+  Recommends      Int     @default(0)
+  AveragePlaytime Int     @default(0)
+  MedianPlaytime  Int     @default(0)
+  Publishers      String? @db.LongText
+  Categories      String? @db.LongText
+  Genres          String? @db.LongText
+  Tags            String? @db.LongText
+  Transact        String? @db.LongText
+
+  @@map("Temp")
+}

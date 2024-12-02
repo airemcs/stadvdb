@@ -8,6 +8,7 @@ export default function Recovery({ params }) {
   const [node, setNode] = useState('main_node'); // for the node
   const [releasedYear,setReleasedYear] = useState();
   const [status,setStatus] = useState([]);
+  const [nodeRead,setNodeRead] = useState();
 
   const [testText, setTestText] = useState('');
   const [testStarted, setTestStarted] = useState(false);
@@ -31,9 +32,12 @@ export default function Recovery({ params }) {
     if (params2.id == 1) {
       setTestText('One of the nodes is unavailable during the execution of a transaction and then eventually comes back online.');
     }
-  }, [params2]);
+  }, [params2,releasedYear]);
 
   // for reading games
+  const changeReleasedYear = (dateConverted) =>{
+    return setReleasedYear(dateConverted);
+  }
   const fetchgameDetails = async () => {
     try {
       const gameId = appId;
@@ -51,9 +55,10 @@ export default function Recovery({ params }) {
 
       const date = data.games.ReleaseDate.split('-');
 
-      console.log(Number(date[0]))
-
-      setReleasedYear(Number(date[0]));
+      console.log(Number(date[0]));
+      const dateConverted = Number(date[0]);
+      
+      changeReleasedYear(dateConverted);
 
     } catch (error) {
       console.error("Error fetching game:", error);
@@ -80,6 +85,8 @@ export default function Recovery({ params }) {
 
       const data = await response.json();
 
+      console.log(data.nodeRead)
+      setNodeRead(data.nodeRead)
       setGame(data.game);
       setTransactionTime(data.transactionTime);
       setStatus(data.status);
@@ -93,8 +100,10 @@ export default function Recovery({ params }) {
 
   const updateGame = async() => {
     setLoading(true);
+    let year = releasedYear;
+    console.log(appId);
     try {
-      const response = await fetch(`/api/specificgames`, {
+      const response = await fetch(`/api/step3testCases`, {
         method: 'PUT',
         
         headers: {
@@ -104,7 +113,8 @@ export default function Recovery({ params }) {
           node: node,
           id: appId, // Make sure appId is defined and valid
           name: gameDetails.gamename,
-          price: gameDetails.price
+          price: gameDetails.price,
+          releasedYear:releasedYear
         }),
       });
   
@@ -131,9 +141,12 @@ export default function Recovery({ params }) {
     if(testType == "read"){
         console.log("reading...")
         fetchgameDetails();
+        console.log(releasedYear);
         fetchGames();
     }else if(testType == "update"){
         console.log("updating...")
+        fetchgameDetails();
+        console.log(releasedYear);
         updateGame();
     }
     
@@ -217,86 +230,24 @@ export default function Recovery({ params }) {
       </div>
       
       {testStarted && game && testType === 'read' &&(
-        <div className="space-y-6">
-        <div className="grid grid-cols-3 gap-">
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Name</p>
-            <p className="text-gray-900 text-lg">{game.Name}</p>
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Release Date</p>
-            <p className="text-gray-900 text-lg">{game.ReleaseDate}</p>
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Estimated Owners</p>
-            <p className="text-gray-900 text-lg">{game.EstimatedOwners}</p>
-          </div>
-        </div>
+        <div className="w-[400px] lg:w-1/3 m-auto">
+          <div className="grid grid-cols-2 items-center p-4 border-b border-black">
+          <div className="font-bold text-center text-xl">Field</div>
+            {nodeRead == "main_node" && (<div className="font-bold text-center text-xl">Main Node</div>)}
+            {nodeRead == "node_1" && (<div className="font-bold text-center text-xl">Node 1</div>)}
+            {nodeRead == "node_2" && (<div className="font-bold text-center text-xl">Node 2</div>)}
 
-        <div className="grid grid-cols-3 gap-6">
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Peak CCU</p>
-            <p className="text-gray-900 text-lg">{game.PeakCCU}</p>
           </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Required Age</p>
-            <p className="text-gray-900 text-lg">{game.RequiredAge}</p>
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Price</p>
-            <p className="text-gray-900 text-lg">{game.Price}</p>
-          </div>
+
+          {Object.keys(game).map((field, i) => (
+            <div key={i} className="grid grid-cols-2 items-center p-4 border-b border-black">
+              <div className="font-bold text-center">{field}</div>
+              <div className="text-center">{game? game[field] : 'N/A'}</div>
+
+            </div>
+          ))}
         </div>
-        <div className="grid grid-cols-3 gap-6">
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">DLCCOUNT</p>
-            <p className="text-gray-900 text-lg">{game.DLCCOUNT}</p>
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Average Playtime</p>
-            <p className="text-gray-900 text-lg">{game.AveragePlaytime}</p>
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Average Playtime</p>
-            <p className="text-gray-900 text-lg">{game.MedianPlaytime}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-6">
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Genres</p>
-            <p className="text-gray-900 text-lg">{game.Genres}</p>
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Tags</p>
-            <p className="text-gray-900 text-lg">{game.Tags}</p>
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Categories</p>
-            <p className="text-gray-900 text-lg">{game.Categories}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-6">
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Website</p>
-            {game.Website && <p clas text-lgs className="text-gray-900 break-words">{game.Website}</p>}
-            {!game.Website && <p className="text-gray-900 break-words">NA</p>}
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Support Email</p>
-            <p className="text-gray-900  text-lgbreak-words">{game.SupportEmail}</p>
-          </div>
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Publishers</p>
-            <p className="text-gray-900 text-lg">{game.Publishers}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-6">
-          <div>
-            <p className="text-gray-700 font-semibold text-2xl italic">Recommends</p>
-            <p className="text-gray-900 text-lg">{game.Recommends}</p>
-          </div>
-        </div>
-      </div>
+    
       )}
 
 
