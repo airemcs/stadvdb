@@ -179,7 +179,7 @@ export async function DELETE(request) {
                     let deletetransaction;
                     
                     try{
-                        savedTransactions.map(async (transact, index)=>{
+                        
 
                         await main_node.$connect(); 
 
@@ -217,7 +217,7 @@ export async function DELETE(request) {
                                 }
                             )
                         )
-                    })
+                    
                     }catch(error){
                         console.log(error);
                     }
@@ -434,7 +434,7 @@ export async function DELETE(request) {
                         status.push('Deleting records in main_node...');
                         status.push('Delete Success!');
                     }else if(releasedYear < 2010){
-                        status.push('Record not in node_2. Update will not go through...');
+                        status.push('Record not in node_2. Delete will not go through...');
                     }
                     
                     deletetransaction = await (

@@ -56,6 +56,7 @@ export default function Recovery({ params }) {
       if (!firstresponse.ok) {
         throw new Error(`Error fetching game: ${firstresponse.statusText}`);
       }
+
       const data1 = await firstresponse.json();
 
       console.log(data1.games.ReleaseDate)
@@ -88,6 +89,7 @@ export default function Recovery({ params }) {
 
     } catch (error) {
       console.error("Error fetching game:", error);
+      setStatus(['Games does not exist']);
     }
 
     setTestStarted(true);
@@ -144,14 +146,13 @@ export default function Recovery({ params }) {
 
       if (response.ok) {
         console.log('Games saved successfully:', data);
-        setProposalFields(data.proposal); 
-        isConfirmOpen(false);
 
       } else {
         console.error('Error saving games:', data.message);
       }
     } catch (error) {
       console.error('Error during save games process:', error);
+      setStatus(['Games does not exist']);
     } finally {
       setLoading(false);
       setShowLogs(true);
@@ -208,14 +209,13 @@ export default function Recovery({ params }) {
 
       if (response.ok) {
         console.log('Games saved successfully:', data);
-        setProposalFields(data.proposal); 
-        isConfirmOpen(false);
 
       } else {
         console.error('Error saving games:', data.message);
       }
     } catch (error) {
-      console.error('Error during save games process:', error);
+      console.error('Error during delete games process:', error);
+      setStatus(['Games does not exist']);
     } finally {
       setLoading(false);
       setShowLogs(true);
@@ -224,11 +224,12 @@ export default function Recovery({ params }) {
 
   const handleStartTest = () => {
     setTestStarted(true);
-    
+    setStatus([]);
+
     if(testType == "read"){
         console.log("reading...")
         fetchgameDetails();
-          
+        
     }else if(testType == "update"){
         console.log("updating...")
         updateGame();
@@ -236,6 +237,7 @@ export default function Recovery({ params }) {
         console.log("deleting...")
         deleteGame();
         setGame({});
+        
     }
   };
 
