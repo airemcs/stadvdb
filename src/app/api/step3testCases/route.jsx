@@ -506,6 +506,7 @@ export async function GET(request) {
                 )
                 status.push('Main_node is available!');
                 game = mainGames;
+
             }catch(error){
                 status.push("Error message: " + error);
 
@@ -536,7 +537,6 @@ export async function GET(request) {
                             { isolationLevel: "ReadCommitted" }
                         )
                     )
-
                     status.push('Read from the node_2!');
                     game = node2Games
                     nodeRead = 'node_2'
