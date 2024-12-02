@@ -28,7 +28,7 @@ export async function GET(request) {
             logs.push('Looking for AppID');
         }
 
-        const selectedIsolationLevel = validIsolationLevels.includes(isolationLevel) ? isolationLevel : undefined;
+        const selectedIsolationLevel = "RepeatableRead";
         const startTime = Date.now();
 
         const performRead = async (node, nodeName) => {
@@ -109,7 +109,7 @@ export async function PUT(request) {
     const startTime = Date.now();
 
     const updateNode = async (node, nodeName) => {
-        await delay(500); // Add a 500ms delay before attempting the update
+        await delay(500); 
         logs.push(`Attempting to update on ${nodeName}`); 
         try {
             const result = await node.$transaction(async (transaction) => {
