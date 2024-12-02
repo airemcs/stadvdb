@@ -51,6 +51,7 @@ model Temp {
   Genres          String? @db.LongText
   Tags            String? @db.LongText
   Transact        String? @db.LongText
+  Node        String? @db.LongText
 
   @@map("Temp")
 }

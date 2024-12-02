@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import React from 'react';
 
 export default function Recovery({ params }) {
+
   const [testType, setTestType] = useState('read'); // for the RUD operations
   const [node, setNode] = useState('main_node'); // for the node
   const [releasedYear,setReleasedYear] = useState();
@@ -16,6 +17,7 @@ export default function Recovery({ params }) {
   const [appId, setAppId] = useState('');
 
   const [loading, setLoading] = useState(false);
+  const [showlogs,setShowLogs] = useState(false);
   const [transactionTime, setTransactionTime] = useState('');
   const RUDoperations = ['read', 'update', 'delete'];
   const validNodes = ['main_node', 'node_1', 'node_2'];
@@ -32,80 +34,95 @@ export default function Recovery({ params }) {
     if (params2.id == 1) {
       setTestText('One of the nodes is unavailable during the execution of a transaction and then eventually comes back online.');
     }
-  }, [params2,releasedYear]);
+  }, [params2]);
 
   // for reading games
   const changeReleasedYear = (dateConverted) =>{
-    return setReleasedYear(dateConverted);
+    console.log("mark")
+    return setReleasedYear(()=>dateConverted);
   }
   const fetchgameDetails = async () => {
+    setTestStarted(false);
+    setShowLogs(false);
     try {
+      setLoading(true);
       const gameId = appId;
 
-      const response = await fetch(`/api/specificgames?appId=${gameId}`,{
+      // get the date of the game first
+      const firstresponse = await fetch(`/api/specificgames?appId=${gameId}`,{
         method: 'GET'
       });
 
-      if (!response.ok) {
-        throw new Error(`Error fetching game: ${response.statusText}`);
+      if (!firstresponse.ok) {
+        throw new Error(`Error fetching game: ${firstresponse.statusText}`);
       }
-      const data = await response.json();
+      const data1 = await firstresponse.json();
 
-      console.log(data.games.ReleaseDate)
+      console.log(data1.games.ReleaseDate)
 
-      const date = data.games.ReleaseDate.split('-');
+      const date = data1.games.ReleaseDate.split('-');
 
       console.log(Number(date[0]));
       const dateConverted = Number(date[0]);
       
       changeReleasedYear(dateConverted);
 
-    } catch (error) {
-      console.error("Error fetching game:", error);
-    }
-  };
-
-  const fetchGames = async () => {
-    setTestStarted(false)
-    let response;
-
-    try {
-      setLoading(true);
-      console.log(releasedYear);
       const queryParams = new URLSearchParams({
         appId: appId || '10',
         testType,
         isolationLevel: "ReadCommitted",
         node: node,
-        releasedYear: releasedYear
+        releasedYear: dateConverted
       });
 
-      response = await fetch(`/api/step3testCases?${queryParams.toString()}`,
+      const secondresponse = await fetch(`/api/step3testCases?${queryParams.toString()}`,
         {method: 'GET'});
 
-      const data = await response.json();
+      const data2 = await secondresponse.json();
 
-      console.log(data.nodeRead)
-      setNodeRead(data.nodeRead)
-      setGame(data.game);
-      setTransactionTime(data.transactionTime);
-      setStatus(data.status);
+      console.log(data2.nodeRead)
+      setNodeRead(data2.nodeRead)
+      setGame(data2.game);
+      setTransactionTime(data2.transactionTime);
+      setStatus(data2.status);
 
     } catch (error) {
-      console.error('Error fetching games:', error);
+      console.error("Error fetching game:", error);
     }
-    setTestStarted(true)
+
+    setTestStarted(true);
     setLoading(false);
+    setShowLogs(true);
   };
 
   const updateGame = async() => {
     setLoading(true);
-    let year = releasedYear;
-    console.log(appId);
+    setShowLogs(false);
     try {
+
+      // get the date of the game first
+      const firstresponse = await fetch(`/api/specificgames?appId=${appId}`,{
+        method: 'GET'
+      });
+
+      if (!firstresponse.ok) {
+        throw new Error(`Error fetching game: ${firstresponse.statusText}`);
+      }
+
+      const data1 = await firstresponse.json();
+
+      console.log(data1.games.ReleaseDate)
+
+      const date = data1.games.ReleaseDate.split('-');
+
+      console.log(Number(date[0]));
+
+      const dateConverted = Number(date[0]);
+      
+      console.log("1");
+
       const response = await fetch(`/api/step3testCases`, {
         method: 'PUT',
-        
         headers: {
           'Content-Type': 'application/json',
         },
@@ -114,17 +131,22 @@ export default function Recovery({ params }) {
           id: appId, // Make sure appId is defined and valid
           name: gameDetails.gamename,
           price: gameDetails.price,
-          releasedYear:releasedYear
+          releasedYear:dateConverted
         }),
       });
-  
+      console.log("2");
+
       const data = await response.json();
-      console.log(data);
-      
+      console.log(data)
+
+      setStatus(data.status)
+
+
       if (response.ok) {
         console.log('Games saved successfully:', data);
         setProposalFields(data.proposal); 
         isConfirmOpen(false);
+
       } else {
         console.error('Error saving games:', data.message);
       }
@@ -132,6 +154,71 @@ export default function Recovery({ params }) {
       console.error('Error during save games process:', error);
     } finally {
       setLoading(false);
+      setShowLogs(true);
+    }
+  };
+
+  const deleteGame = async() => {
+    setLoading(true);
+    setShowLogs(false);
+    try {
+
+      // get the date of the game first
+      const firstresponse = await fetch(`/api/specificgames?appId=${appId}`,{
+        method: 'GET'
+      });
+
+      if (!firstresponse.ok) {
+        throw new Error(`Error fetching game: ${firstresponse.statusText}`);
+      }
+
+      const data1 = await firstresponse.json();
+
+      console.log(data1.games.ReleaseDate)
+
+      const date = data1.games.ReleaseDate.split('-');
+
+      console.log(Number(date[0]));
+
+      const dateConverted = Number(date[0]);
+      
+      console.log("1");
+
+      const response = await fetch(`/api/step3testCases`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          node: node,
+          id: appId, // Make sure appId is defined and valid
+          name: gameDetails.gamename,
+          price: gameDetails.price,
+          releasedYear:dateConverted
+        }),
+      });
+
+      console.log("2");
+
+      const data = await response.json();
+      console.log(data)
+
+      setStatus(data.status)
+
+
+      if (response.ok) {
+        console.log('Games saved successfully:', data);
+        setProposalFields(data.proposal); 
+        isConfirmOpen(false);
+
+      } else {
+        console.error('Error saving games:', data.message);
+      }
+    } catch (error) {
+      console.error('Error during save games process:', error);
+    } finally {
+      setLoading(false);
+      setShowLogs(true);
     }
   };
 
@@ -141,18 +228,16 @@ export default function Recovery({ params }) {
     if(testType == "read"){
         console.log("reading...")
         fetchgameDetails();
-        console.log(releasedYear);
-        fetchGames();
+          
     }else if(testType == "update"){
         console.log("updating...")
-        fetchgameDetails();
-        console.log(releasedYear);
         updateGame();
+    }else if(testType == "delete"){
+        console.log("deleting...")
+        deleteGame();
+        setGame({});
     }
-    
   };
-
-  
 
   return (
     <div className="flex flex-col py-10 m-20 gap-5">
@@ -203,6 +288,7 @@ export default function Recovery({ params }) {
           ))}
           
         </select>
+        
 
         <select
           value={testType}
@@ -217,17 +303,52 @@ export default function Recovery({ params }) {
           
         </select>
       </div>
-        <div>
-          <div className="text-xl mb-6 flex m-auto text-center">{testType}</div>
-          <div className="text-xl mb-3 flex m-auto text-center"> Logs: </div>
-          {status.map((item, index) => (
-            <div key={index} className="text-md mb-2 flex">{index + 1} - {item}</div>
-          ))}
-          <div className="text-xl mb-6 flex m-auto text-center">{node}</div>
-          
-        </div>
-        
+
+      <div>
+        {validNodes
+        .map((item,index) => (
+          <tr key={index} className={index % 2 === 0 ? 'bg-gray-600' : ''}>
+            {item === node ?
+                <td className="py-2 text-center border px-4 border-white">{node} is made unavailable</td>
+                :
+                <td className="py-2 text-center border px-4 border-white">{item} is available</td>}
+          </tr>
+        ))}
+
+        <div className="text-xl mt-10 flex text-center"> Transaction: {testType}</div>
       </div>
+      
+      </div>
+        {showlogs && (
+        <div className="w-full lg:w-2/3 m-auto overflow-x-auto">
+          <div className='flex flex-col justify-center text-center'>
+            <div className="text-xl mb-3 flex m-auto"> Logs: </div>
+
+            <div className='justify-center'>
+            <table className="min-w-full bg-gray-700">
+
+              <thead>
+                <tr>
+                  <th className="py-2 px-4 bg-gray-600 border">Step</th>
+                  <th className="py-2 px-4 bg-gray-600 border">Log Message</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {status.map((item, index) => (
+                  <tr key={index} className={index % 2 === 0 ? 'bg-gray-600' : ''}>
+                    <td className="py-2 text-center border px-4 border-white">{index + 1}</td>
+                    <td className="py-2 text-center border px-4 border-white">{item}</td>
+                  </tr>
+                ))}
+
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+    )}
+      
       
       {testStarted && game && testType === 'read' &&(
         <div className="w-[400px] lg:w-1/3 m-auto">
