@@ -81,7 +81,7 @@ export default function Recovery({ params }) {
 
       const data2 = await secondresponse.json();
 
-      console.log(data2.nodeRead)
+      console.log(data2)
       setNodeRead(data2.nodeRead)
       setGame(data2.game);
       setTransactionTime(data2.transactionTime);
@@ -317,7 +317,7 @@ export default function Recovery({ params }) {
           </tr>
         ))}
 
-        <div className="text-xl mt-10 flex text-center"> Transaction: {testType}</div>
+        <div className="text-xl mt-10 flex text-center font-bold"> Transaction: {testType}</div>
       </div>
       
       </div>
@@ -375,23 +375,8 @@ export default function Recovery({ params }) {
 
 
       {game && testType === 'update' &&(
-          <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg space-y-8">
-            <div className="flex-1">
-              <div className='text-black font-bold'>
-                  Price
-              </div>
-              <input 
-                type="text" 
-                value={gameDetails.price} 
-                className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
-                  onChange={(e) => 
-                    setGameDetails((prevDetails) => ({
-                      ...prevDetails,       // Copy all existing properties
-                      price: e.target.value // Override the specific property
-                    }))                  
-                  } 
-              />
-            </div>
+          <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-lg space-y-8 justify-center m-auto">
+           
             <div className="flex-1">
               <div className='text-black font-bold'>
                   Name: 
@@ -408,6 +393,24 @@ export default function Recovery({ params }) {
                   } 
               />
             </div>
+
+            <div className="flex-1">
+              <div className='text-black font-bold'>
+                  Price
+              </div>
+              <input 
+                type="text" 
+                value={gameDetails.price} 
+                className="text-gray-700 w-full p-3 mb-2 outline-none bg-white border border-gray-300 rounded-md" 
+                  onChange={(e) => 
+                    setGameDetails((prevDetails) => ({
+                      ...prevDetails,       // Copy all existing properties
+                      price: e.target.value // Override the specific property
+                    }))                  
+                  } 
+              />
+            </div>
+            
           
           </div>
 
