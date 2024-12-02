@@ -82,8 +82,11 @@ export async function GET(request) {
     }
 }
 
-export async function PUT(request) {
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
+export async function PUT(request) {
     const logs = []; 
 
     const body = await request.json();
@@ -96,7 +99,7 @@ export async function PUT(request) {
     } = body;
 
     const validIsolationLevels = ['Serializable', 'RepeatableRead', 'ReadCommitted', 'ReadUncommitted'];
-    const selectedIsolationLevel = "ReadUncommitted"
+    const selectedIsolationLevel = "RepeatableRead";
 
     const dataToUpdate = {};
     if (name !== undefined) dataToUpdate.Name = name;
@@ -106,6 +109,7 @@ export async function PUT(request) {
     const startTime = Date.now();
 
     const updateNode = async (node, nodeName) => {
+        await delay(500); // Add a 500ms delay before attempting the update
         logs.push(`Attempting to update on ${nodeName}`); 
         try {
             const result = await node.$transaction(async (transaction) => {
@@ -124,6 +128,7 @@ export async function PUT(request) {
     };
 
     const findGame = async (node, nodeName) => {
+
         logs.push(`Attempting to read game on ${nodeName}`); 
         try {
             const result = await node.$transaction(
@@ -138,7 +143,8 @@ export async function PUT(request) {
             return null;
         }
     };
-    let results
+
+    let results;
     if (type == 2) {
          results = await Promise.allSettled([
             updateNode(main_node, 'main_node'),
@@ -148,15 +154,13 @@ export async function PUT(request) {
             findGame(node_1, 'Node 1'),
             findGame(node_2, 'Node 2')
         ]);
-    } else if (type ==3 ) {
+    } else if (type == 3) {
         results = await Promise.allSettled([
             updateNode(main_node, 'main_node'),
             updateNode(node_1, 'Node 1'),
             updateNode(node_2, 'Node 2'),
-
         ]);
     }
-
 
     const [updateMainResult, updateNode1Result, updateNode2Result, mainGames, node1Games, node2Games] = results.map(result => result.status === 'fulfilled' ? result.value : null);
 
@@ -172,7 +176,8 @@ export async function PUT(request) {
 
         const endTime = Date.now();
         const duration = endTime - startTime;
-
+        console.log(node2Games);
+        console.log(mainGames);
         return NextResponse.json({
             totalGames,
             isolationLevel: selectedIsolationLevel,

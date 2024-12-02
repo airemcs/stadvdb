@@ -21,8 +21,8 @@ export default function Concurrency({ params }) {
   const [gamePrice, setgamePrice] = useState('')
   const [logs, setLogs] = useState({})
   const [data1, setData] = useState({})
-
-
+  const [newGameName, setNewGameName] = useState("")
+  const [newGamePrice, setNewPrice] = useState("")
   const params2 = React.use(params);
   useEffect(() => {
     if (params2.id == 1) {
@@ -69,6 +69,9 @@ export default function Concurrency({ params }) {
           setAppId(data.totalGames.main_node.games.AppID)
           setLogs(data.logs)  
         } else if (params2.id == 2 && !useFetchOnly) {
+
+            setNewGameName(gameName)
+            setNewPrice(gamePrice)
             response = await fetch(`/api/testCases`, {
                 method: 'PUT',
                 headers: {
@@ -97,6 +100,8 @@ export default function Concurrency({ params }) {
           setAppId(data.totalGames.main_node.games.AppID)
           setLogs(data.logs)
         } else if (params2.id == 3 && !useFetchOnly) {
+          setNewGameName(gameName)
+          setNewPrice(gamePrice)
           response = await fetch(`/api/testCases`, {
             method: 'PUT',
             headers: {
