@@ -89,7 +89,7 @@ export default function Recovery({ params }) {
 
     } catch (error) {
       console.error("Error fetching game:", error);
-      setStatus(['Games does not exist']);
+      setStatus(['Game does not exist']);
     }
 
     setTestStarted(true);
@@ -152,7 +152,7 @@ export default function Recovery({ params }) {
       }
     } catch (error) {
       console.error('Error during save games process:', error);
-      setStatus(['Games does not exist']);
+      setStatus(['Game does not exist']);
     } finally {
       setLoading(false);
       setShowLogs(true);
@@ -215,7 +215,7 @@ export default function Recovery({ params }) {
       }
     } catch (error) {
       console.error('Error during delete games process:', error);
-      setStatus(['Games does not exist']);
+      setStatus(['Game does not exist']);
     } finally {
       setLoading(false);
       setShowLogs(true);
