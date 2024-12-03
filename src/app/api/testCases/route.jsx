@@ -36,12 +36,12 @@ export async function GET(request) {
             try {
                 const result = await node.$transaction(
                     async (transaction) => transaction.games.findFirst({ where: filters }),
-                    { isolationLevel: selectedIsolationLevel }
+                    { isolationLevel: "RepeatableRead" }
                 );
                 if (result) {
                     logs.push(`Successfully read game on ${nodeName}`);
                 } else {
-                    logs.push(`No game found on ${nodeName}`);
+                    logs.push(`No game found on ${nodeName}`);  
                 }
                 return result;
             } catch (error) {
@@ -71,7 +71,7 @@ export async function GET(request) {
         return NextResponse.json({
             totalGames,
             transactionTime: `${duration} ms`,
-            isolationLevel,
+            isolationLevel: selectedIsolationLevel,
             logs,
         });
 
