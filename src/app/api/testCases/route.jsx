@@ -71,7 +71,7 @@ export async function GET(request) {
         return NextResponse.json({
             totalGames,
             transactionTime: `${duration} ms`,
-            isolationLevel: selectedIsolationLevel,
+            isolationLevel: "RepeatableRead",
             logs,
         });
 
