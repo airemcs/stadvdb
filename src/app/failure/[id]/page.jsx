@@ -4,7 +4,6 @@ import { useState } from 'react';
 import React from 'react';
 
 function UpdateComponent({ gameData, testType, onUpdate }) {
-
   const [formData, setFormData] = useState({
     AppID: gameData.AppID || '',
     Name: gameData.Name || '',
@@ -85,8 +84,6 @@ export default function Failure({ params: paramsPromise }) {
 
   const fetchGame = async () => {
     setTestStarted(false);
-    let response;
-
     try {
       setLoading(true);
       const queryParams = new URLSearchParams({
@@ -94,7 +91,7 @@ export default function Failure({ params: paramsPromise }) {
         node: nodeType,
       });
 
-      response = await fetch(`/api/failure?${queryParams.toString()}`, {
+      const response = await fetch(`/api/failure?${queryParams.toString()}`, {
         method: 'GET',
       });
 
@@ -102,48 +99,60 @@ export default function Failure({ params: paramsPromise }) {
       setGame(data.game);
     } catch (error) {
       console.error('Error fetching game:', error);
+    } finally {
+      setLoading(false);
     }
-
     setTestStarted(true);
-    setLoading(false);
   };
+
+  const handleDelete = async () => {
+    try {
+      const queryParams = new URLSearchParams({
+        id: appID,
+        node: nodeType,
+      });
+      
+      const response = await fetch(`/api/failure?${queryParams.toString()}`, {
+        method: 'DELETE',
+      });      
+  
+      console.log('2'); // Debugging step
+  
+      if (!response.ok) {
+        const errorText = await response.text(); // Use text() instead of json()
+        console.error('Error deleting game:', errorText);
+        alert('Failed to delete game: ' + errorText);
+        return;
+      }
+  
+      // No need to parse if the response body is empty
+      alert('Game deleted successfully!');
+      setGame(null); // Clear game data after deletion
+    } catch (error) {
+      console.error('Error making delete request:', error);
+      alert('An error occurred while deleting the game.');
+    }
+  };
+  
 
   const handleStartTest = () => {
     console.log('Node statuses:', nodeStatuses);
     if (testType === 'update' && appID) {
       fetchGame();
+    } else if (testType === 'delete' && appID) {
+      handleDelete(); // Trigger delete when testType is 'delete'
     }
   };
 
   const handleUpdate = async (updatedGame) => {
     console.log('Updated game data:', updatedGame);
-  
-    // Determine secondary and main node logic
-    const isMainNode = nodeType === 'main_node';
-    const secondaryNodes = validNodes.filter((node) => node !== 'main_node' && node !== nodeType);
-  
-    // Check secondary nodes' availability when updating from main_node
-    if (isMainNode) {
-      const unavailableNodes = secondaryNodes.filter((node) => !nodeStatuses[node]);
-  
-      if (unavailableNodes.length > 0) {
-        alert(`Update failed: The following nodes are unavailable: ${unavailableNodes.join(', ')}`);
-        return;
-      }
-    }
-  
-    // Check main node availability when updating from secondary node
-    if (!isMainNode && !nodeStatuses['main_node']) {
-      alert('Update failed: The main node is unavailable.');
-      return;
-    }
-  
+
     try {
       const queryParams = new URLSearchParams({
         node: nodeType,
-        nodeStatuses: JSON.stringify(nodeStatuses),
+        nodeStatuses: JSON.stringify(nodeStatuses), // Pass node statuses
       });
-  
+
       const response = await fetch(`/api/failure?${queryParams.toString()}`, {
         method: 'PUT',
         headers: {
@@ -151,14 +160,14 @@ export default function Failure({ params: paramsPromise }) {
         },
         body: JSON.stringify(updatedGame),
       });
-  
+
       if (!response.ok) {
         const error = await response.json();
         console.error('Error updating game:', error);
         alert('Failed to update game: ' + error.message);
         return;
       }
-  
+
       const data = await response.json();
       console.log('Game updated successfully:', data.game);
       setGame(data.game);
@@ -256,6 +265,7 @@ export default function Failure({ params: paramsPromise }) {
               </option>
             ))}
           </select>
+
           <button
             onClick={handleStartTest}
             className={`w-full h-full flex items-center justify-center rounded-lg outline outline-1 ${
@@ -268,14 +278,8 @@ export default function Failure({ params: paramsPromise }) {
         </div>
 
         {testStarted && game && (
-          <UpdateComponent
-            gameData={game}
-            testType={testType}
-            onUpdate={handleUpdate}
-          />
-        )}
-
-        {loading && <p className="text-center text-gray-500">Loading...</p>}
+  <UpdateComponent gameData={game} testType={testType} onUpdate={handleUpdate} />
+)}
       </div>
     </>
   );
