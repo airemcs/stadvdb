@@ -110,13 +110,12 @@ export default function Failure({ params: paramsPromise }) {
       const queryParams = new URLSearchParams({
         id: appID,
         node: nodeType,
+        nodeStatuses: JSON.stringify(nodeStatuses),
       });
       
       const response = await fetch(`/api/failure?${queryParams.toString()}`, {
         method: 'DELETE',
       });      
-  
-      console.log('2'); // Debugging step
   
       if (!response.ok) {
         const errorText = await response.text(); // Use text() instead of json()
@@ -136,11 +135,10 @@ export default function Failure({ params: paramsPromise }) {
   
 
   const handleStartTest = () => {
-    console.log('Node statuses:', nodeStatuses);
     if (testType === 'update' && appID) {
       fetchGame();
     } else if (testType === 'delete' && appID) {
-      handleDelete(); // Trigger delete when testType is 'delete'
+      handleDelete();
     }
   };
 

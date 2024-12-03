@@ -109,6 +109,7 @@ export async function PUT(request) {
       const { searchParams } = new URL(request.url);
       const appID = searchParams.get('id');
       const node = searchParams.get('node');
+      const nodeStatuses = searchParams.get('nodeStatuses');
   
       if (!appID) {
         return NextResponse.json({ message: 'appID is required' }, { status: 400 });
