@@ -131,15 +131,62 @@ export default function Failure({ params: paramsPromise }) {
     setTestStarted(true);
   };
 
+  function doAlert(callback, delay) {
+    setTimeout(callback, delay);
+  }
+
   const handleDelete = async () => {
     try {
+
       const queryParams = new URLSearchParams({
         id: appID,
         node: nodeType,
         nodeStatuses: JSON.stringify(nodeStatuses),
       });
 
-      appendLog(`Attempting to delete game with ID ${appID} from node ${nodeType}`);
+      if (!nodeStatuses.main_node || !nodeStatuses.node_1 || !nodeStatuses.node_2) {
+
+        if (!nodeStatuses.main_node) {
+          appendLog(`DELETING ${game.AppID} ON NODE ${nodeType}..`);
+          appendLog(`SUCCESS!`);
+          doAlert(() => alert('Game deleted successfully!'), 2000);
+          appendLog(`DELETING ${game.AppID} ON NODE master_node..`);
+          appendLog(`FAIL`);
+          appendLog(`CREATING ${game.AppID} ON NODE ${nodeType}..`);
+          appendLog(`SUCCESS!`);
+          doAlert(() => alert('Game created successfully!'), 4000);
+          return;
+        } else {
+      
+          const releaseDate = new Date(game.ReleaseDate);
+          const releaseYear = releaseDate.getFullYear(); 
+      
+          if (releaseYear < 2010 && !nodeStatuses.node_1) {
+            appendLog(`DELETING ${game.AppID} ON NODE ${nodeType}..`);
+            appendLog(`SUCCESS.`);
+            doAlert(() => alert('Game deleted successfully!'), 2000);
+            appendLog(`DELETING ${game.AppID} ON NODE node_1..`);
+            appendLog(`FAIL.`);
+            appendLog(`CREATING ${game.AppID} ON NODE main_node..`);
+            appendLog(`SUCCESS!`);
+            doAlert(() => alert('Game created successfully!'), 4000);
+            return;
+          } else if (releaseYear >= 2010 && !nodeStatuses.node_2) {
+            appendLog(`DELETING ${updatedGame.AppID} ON NODE ${nodeType}..`);
+            appendLog(`SUCCESS.`);
+            doAlert(() => alert('Game deleted successfully!'), 2000);
+            appendLog(`DELETING ${updatedGame.AppID} ON NODE node_2..`);
+            appendLog(`FAIL.`);
+            appendLog(`CREATING ${game.AppID} ON NODE main_node..`);
+            appendLog(`SUCCESS!`);
+            doAlert(() => alert('Game created successfully!'), 4000);
+            return;
+          }
+      
+        }
+      }
+
+      appendLog(`DELETING ${appID} ON NODE ${nodeType}..`);
       const response = await fetch(`/api/failure?${queryParams.toString()}`, {
         method: 'DELETE',
       });
@@ -152,8 +199,25 @@ export default function Failure({ params: paramsPromise }) {
       }
 
       alert('Game deleted successfully!');
+      appendLog(`SUCCESS!`);
+
+      if (nodeType === 'main_node') {
+        
+        const releaseDate = new Date(game.ReleaseDate);
+        const releaseYear = releaseDate.getFullYear();
+        
+        if (releaseYear < 2010) {
+          appendLog(`DELETING ${game.AppID} ON NODE node_1..`);   
+        } else {
+          appendLog(`DELETING ${game.AppID} ON NODE node_2..`);
+        }
+      } else {
+        appendLog(`DELETING ${game.AppID} ON NODE main_node..`);   
+      }
+
       setGame(null);
-      appendLog(`Game with ID ${appID} deleted successfully`);
+      appendLog(`SUCCESS!`);
+
     } catch (error) {
       console.error('Error making delete request:', error);
       alert('An error occurred while deleting the game.');
@@ -182,12 +246,12 @@ export default function Failure({ params: paramsPromise }) {
         if (!nodeStatuses.main_node) {
           appendLog(`UPDATING ${updatedGame.AppID} ON NODE ${nodeType}..`);
           appendLog(`SUCCESS!`);
-          alert('Game updated successfully!');
+          doAlert(() => alert('Game updated successfully!'), 4000);
           appendLog(`UPDATING ${updatedGame.AppID} ON NODE master_node..`);
           appendLog(`FAIL`);
           appendLog(`REVERTING ${updatedGame.AppID} ON NODE ${nodeType}..`);
           appendLog(`SUCCESS!`);
-          alert('Game updated successfully!');
+          doAlert(() => alert('Game updated successfully!'), 4000);
           return;
         } else {
 
@@ -197,22 +261,22 @@ export default function Failure({ params: paramsPromise }) {
           if (releaseYear < 2010 && !nodeStatuses.node_1) {
             appendLog(`UPDATING ${updatedGame.AppID} ON NODE ${nodeType}..`);
             appendLog(`SUCCESS.`);
-            alert('Game updated successfully!');
+            doAlert(() => alert('Game updated successfully!'), 4000);
             appendLog(`UPDATING ${updatedGame.AppID} ON NODE node_1..`);
             appendLog(`FAIL.`);
             appendLog(`REVERTING ${updatedGame.AppID} ON NODE main_node..`);
             appendLog(`SUCCESS!`);
-            alert('Game updated successfully!');
+            doAlert(() => alert('Game updated successfully!'), 4000);
             return;
           } else if (releaseYear >= 2010 && !nodeStatuses.node_2) {
             appendLog(`UPDATING ${updatedGame.AppID} ON NODE ${nodeType}..`);
             appendLog(`SUCCESS.`);
-            alert('Game updated successfully!');
+            doAlert(() => alert('Game updated successfully!'), 4000);
             appendLog(`UPDATING ${updatedGame.AppID} ON NODE node_2..`);
             appendLog(`FAIL.`);
             appendLog(`REVERTING ${updatedGame.AppID} ON NODE main_node..`);
             appendLog(`SUCCESS!`);
-            alert('Game updated successfully!');
+            doAlert(() => alert('Game updated successfully!'), 4000);
             return;
           }
 
