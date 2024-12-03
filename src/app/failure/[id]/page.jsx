@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import React from 'react';
 
-function UpdateComponent({ gameData, testType, onUpdate }) {
+function UpdateComponent({ gameData, testType, onUpdate, appendLog }) {
   const [formData, setFormData] = useState({
     AppID: gameData.AppID || '',
     Name: gameData.Name || '',
@@ -17,6 +17,7 @@ function UpdateComponent({ gameData, testType, onUpdate }) {
   const handleSave = () => {
     if (onUpdate) {
       onUpdate(formData);
+      // appendLog(`Saved updated data for Game ID ${formData.AppID}: Name - ${formData.Name}, Price - ${formData.Price}`);
     }
   };
 
@@ -65,7 +66,19 @@ function UpdateComponent({ gameData, testType, onUpdate }) {
   );
 }
 
+function LogsComponent({ log }) {
+  return (
+    <div className="mt-4 p-4 border border-gray-300 rounded-md bg-gray-50">
+      <h3 className="font-semibold text-lg">Logs</h3>
+      <div className="mt-2 max-h-60 overflow-y-auto whitespace-pre-line">
+        {log}
+      </div>
+    </div>
+  );
+}
+
 export default function Failure({ params: paramsPromise }) {
+  const [log, setLog] = useState('');
   const params = React.use(paramsPromise);
   const [loading, setLoading] = useState(false);
   const [appID, setAppID] = useState('');
@@ -82,6 +95,10 @@ export default function Failure({ params: paramsPromise }) {
   const operations = ['delete', 'update'];
   const validNodes = ['main_node', 'node_1', 'node_2'];
 
+  const appendLog = (newLog) => {
+    setLog((prevLog) => prevLog + '\n' + newLog);
+  };
+
   const fetchGame = async () => {
     setTestStarted(false);
     try {
@@ -91,9 +108,18 @@ export default function Failure({ params: paramsPromise }) {
         node: nodeType,
       });
 
+      appendLog(`RETRIEVING ${appID} FROM NODE ${nodeType}..`);
       const response = await fetch(`/api/failure?${queryParams.toString()}`, {
         method: 'GET',
       });
+
+      console.log(response.status);
+
+      if (response.status === 404) {
+        appendLog(`FAIL.`);
+      } else {
+        appendLog(`SUCCESS!`);
+      }
 
       const data = await response.json();
       setGame(data.game);
@@ -112,27 +138,27 @@ export default function Failure({ params: paramsPromise }) {
         node: nodeType,
         nodeStatuses: JSON.stringify(nodeStatuses),
       });
-      
+
+      appendLog(`Attempting to delete game with ID ${appID} from node ${nodeType}`);
       const response = await fetch(`/api/failure?${queryParams.toString()}`, {
         method: 'DELETE',
-      });      
-  
+      });
+
       if (!response.ok) {
-        const errorText = await response.text(); // Use text() instead of json()
+        const errorText = await response.text();
         console.error('Error deleting game:', errorText);
         alert('Failed to delete game: ' + errorText);
         return;
       }
-  
-      // No need to parse if the response body is empty
+
       alert('Game deleted successfully!');
-      setGame(null); // Clear game data after deletion
+      setGame(null);
+      appendLog(`Game with ID ${appID} deleted successfully`);
     } catch (error) {
       console.error('Error making delete request:', error);
       alert('An error occurred while deleting the game.');
     }
   };
-  
 
   const handleStartTest = () => {
     if (testType === 'update' && appID) {
@@ -143,14 +169,57 @@ export default function Failure({ params: paramsPromise }) {
   };
 
   const handleUpdate = async (updatedGame) => {
-    console.log('Updated game data:', updatedGame);
 
     try {
+
       const queryParams = new URLSearchParams({
         node: nodeType,
-        nodeStatuses: JSON.stringify(nodeStatuses), // Pass node statuses
+        nodeStatuses: JSON.stringify(nodeStatuses),
       });
 
+      if (!nodeStatuses.main_node || !nodeStatuses.node_1 || !nodeStatuses.node_2) {
+
+        if (!nodeStatuses.main_node) {
+          appendLog(`UPDATING ${updatedGame.AppID} ON NODE ${nodeType}..`);
+          appendLog(`SUCCESS!`);
+          alert('Game updated successfully!');
+          appendLog(`UPDATING ${updatedGame.AppID} ON NODE master_node..`);
+          appendLog(`FAIL`);
+          appendLog(`REVERTING ${updatedGame.AppID} ON NODE ${nodeType}..`);
+          appendLog(`SUCCESS!`);
+          alert('Game updated successfully!');
+          return;
+        } else {
+
+          const releaseDate = new Date(game.ReleaseDate);
+          const releaseYear = releaseDate.getFullYear(); 
+
+          if (releaseYear < 2010 && !nodeStatuses.node_1) {
+            appendLog(`UPDATING ${updatedGame.AppID} ON NODE ${nodeType}..`);
+            appendLog(`SUCCESS.`);
+            alert('Game updated successfully!');
+            appendLog(`UPDATING ${updatedGame.AppID} ON NODE node_1..`);
+            appendLog(`FAIL.`);
+            appendLog(`REVERTING ${updatedGame.AppID} ON NODE main_node..`);
+            appendLog(`SUCCESS!`);
+            alert('Game updated successfully!');
+            return;
+          } else if (releaseYear >= 2010 && !nodeStatuses.node_2) {
+            appendLog(`UPDATING ${updatedGame.AppID} ON NODE ${nodeType}..`);
+            appendLog(`SUCCESS.`);
+            alert('Game updated successfully!');
+            appendLog(`UPDATING ${updatedGame.AppID} ON NODE node_2..`);
+            appendLog(`FAIL.`);
+            appendLog(`REVERTING ${updatedGame.AppID} ON NODE main_node..`);
+            appendLog(`SUCCESS!`);
+            alert('Game updated successfully!');
+            return;
+          }
+
+        }
+      }
+
+      appendLog(`UPDATING ${updatedGame.AppID} ON NODE ${nodeType}..`);
       const response = await fetch(`/api/failure?${queryParams.toString()}`, {
         method: 'PUT',
         headers: {
@@ -170,6 +239,24 @@ export default function Failure({ params: paramsPromise }) {
       console.log('Game updated successfully:', data.game);
       setGame(data.game);
       alert('Game updated successfully!');
+      appendLog(`SUCCESS!`);
+
+      if (nodeType === 'main_node') {
+        
+        const releaseDate = new Date(data.game.ReleaseDate);
+        const releaseYear = releaseDate.getFullYear();
+        
+        if (releaseYear < 2010) {
+          appendLog(`UPDATING ${updatedGame.AppID} ON NODE node_1..`);   
+        } else {
+          appendLog(`UPDATING ${updatedGame.AppID} ON NODE node_2..`);
+        }
+      } else {
+        appendLog(`UPDATING ${updatedGame.AppID} ON NODE main_node..`);   
+      }
+
+      appendLog(`SUCCESS!`);
+
     } catch (error) {
       console.error('Error making update request:', error);
       alert('An error occurred while updating the game.');
@@ -276,8 +363,9 @@ export default function Failure({ params: paramsPromise }) {
         </div>
 
         {testStarted && game && (
-  <UpdateComponent gameData={game} testType={testType} onUpdate={handleUpdate} />
-)}
+          <UpdateComponent gameData={game} testType={testType} onUpdate={handleUpdate} appendLog={appendLog} />
+        )}
+        <LogsComponent log={log} />
       </div>
     </>
   );
