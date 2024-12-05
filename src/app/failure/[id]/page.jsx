@@ -135,94 +135,84 @@ export default function Failure({ params: paramsPromise }) {
     setTimeout(callback, delay);
   }
 
-  const handleDelete = async () => {
+  const createGame = async (gameData, node) => {
     try {
-
-      const queryParams = new URLSearchParams({
-        id: appID,
-        node: nodeType,
-        nodeStatuses: JSON.stringify(nodeStatuses),
+      const queryParams = new URLSearchParams({ node });
+      appendLog(`CREATING ${gameData.AppID} ON NODE ${node}..`);
+      
+      const response = await fetch(`/api/failure?${queryParams.toString()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gameData),
       });
-
-      if (!nodeStatuses.main_node || !nodeStatuses.node_1 || !nodeStatuses.node_2) {
-
-        if (!nodeStatuses.main_node) {
-          appendLog(`DELETING ${game.AppID} ON NODE ${nodeType}..`);
-          appendLog(`SUCCESS!`);
-          doAlert(() => alert('Game deleted successfully!'), 2000);
-          appendLog(`DELETING ${game.AppID} ON NODE master_node..`);
-          appendLog(`FAIL`);
-          appendLog(`CREATING ${game.AppID} ON NODE ${nodeType}..`);
-          appendLog(`SUCCESS!`);
-          doAlert(() => alert('Game created successfully!'), 4000);
-          return;
-        } else {
-      
-          const releaseDate = new Date(game.ReleaseDate);
-          const releaseYear = releaseDate.getFullYear(); 
-      
-          if (releaseYear < 2010 && !nodeStatuses.node_1) {
-            appendLog(`DELETING ${game.AppID} ON NODE ${nodeType}..`);
-            appendLog(`SUCCESS.`);
-            doAlert(() => alert('Game deleted successfully!'), 2000);
-            appendLog(`DELETING ${game.AppID} ON NODE node_1..`);
-            appendLog(`FAIL.`);
-            appendLog(`CREATING ${game.AppID} ON NODE main_node..`);
-            appendLog(`SUCCESS!`);
-            doAlert(() => alert('Game created successfully!'), 4000);
-            return;
-          } else if (releaseYear >= 2010 && !nodeStatuses.node_2) {
-            appendLog(`DELETING ${updatedGame.AppID} ON NODE ${nodeType}..`);
-            appendLog(`SUCCESS.`);
-            doAlert(() => alert('Game deleted successfully!'), 2000);
-            appendLog(`DELETING ${updatedGame.AppID} ON NODE node_2..`);
-            appendLog(`FAIL.`);
-            appendLog(`CREATING ${game.AppID} ON NODE main_node..`);
-            appendLog(`SUCCESS!`);
-            doAlert(() => alert('Game created successfully!'), 4000);
-            return;
-          }
-      
-        }
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        appendLog(`FAIL: ${errorText}`);
+        return false;
       }
+  
+      appendLog(`SUCCESS!`);
+      return true;
+    } catch (error) {
+      console.error(`Error creating game on node ${node}:`, error);
+      appendLog(`FAIL: ${error.message}`);
+      return false;
+    }
+  };
 
-      appendLog(`DELETING ${appID} ON NODE ${nodeType}..`);
+  const deleteGame = async (appID, node) => {
+    try {
+      const queryParams = new URLSearchParams({ id: appID, node });
+      appendLog(`DELETING ${appID} ON NODE ${node}..`);
+      
       const response = await fetch(`/api/failure?${queryParams.toString()}`, {
         method: 'DELETE',
       });
-
+  
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error deleting game:', errorText);
-        alert('Failed to delete game: ' + errorText);
-        return;
+        appendLog(`FAIL: ${errorText}`);
+        return false;
       }
-
-      alert('Game deleted successfully!');
+  
       appendLog(`SUCCESS!`);
-
-      if (nodeType === 'main_node') {
-        
-        const releaseDate = new Date(game.ReleaseDate);
-        const releaseYear = releaseDate.getFullYear();
-        
-        if (releaseYear < 2010) {
-          appendLog(`DELETING ${game.AppID} ON NODE node_1..`);   
-        } else {
-          appendLog(`DELETING ${game.AppID} ON NODE node_2..`);
-        }
-      } else {
-        appendLog(`DELETING ${game.AppID} ON NODE main_node..`);   
-      }
-
-      setGame(null);
-      appendLog(`SUCCESS!`);
-
+      return true;
     } catch (error) {
-      console.error('Error making delete request:', error);
-      alert('An error occurred while deleting the game.');
+      console.error(`Error deleting game on node ${node}:`, error);
+      appendLog(`FAIL: ${error.message}`);
+      return false;
     }
   };
+  
+  const handleDelete = async () => {
+    try {
+      const releaseDate = new Date(game.ReleaseDate);
+      const releaseYear = releaseDate.getFullYear();
+      const targetNode = releaseYear < 2010 ? 'node_1' : 'node_2';
+  
+      const deleteSuccess = await deleteGame(appID, nodeType);
+      if (!deleteSuccess) return;
+  
+      if (!nodeStatuses.main_node) {
+        await deleteGame(appID, 'master_node'); 
+        await createGame(game, nodeType); 
+        return;
+      }
+  
+      if (!nodeStatuses[targetNode]) {
+        await deleteGame(appID, targetNode); 
+        await createGame(game, 'main_node');
+        return;
+      }
+  
+      appendLog(`Game ${appID} successfully deleted across nodes.`);
+      setGame(null);
+    } catch (error) {
+      console.error('Error in handleDelete:', error);
+      appendLog(`Unexpected error: ${error.message}`);
+    }
+  };  
 
   const handleStartTest = () => {
     if (testType === 'update' && appID) {

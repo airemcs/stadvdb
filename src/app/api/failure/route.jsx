@@ -165,3 +165,69 @@ export async function PUT(request) {
       }
     }
   }
+
+  export async function POST(request) {
+    try {
+      const body = await request.json();
+      const { AppID, Name, Price } = body;
+  
+      if (!AppID || !Name || !Price) {
+        return NextResponse.json({ message: 'AppID, Name, and Price are required' }, { status: 400 });
+      }
+  
+      const { searchParams } = new URL(request.url);
+      const node = searchParams.get('node');
+      const nodesMap = { main_node, node_1, node_2 };
+      const selectedNode = nodesMap[node];
+  
+      if (!selectedNode) {
+        return NextResponse.json({ message: 'Invalid node specified' }, { status: 400 });
+      }
+  
+      console.log(`Creating game in node: ${node}, AppID: ${AppID}`);
+  
+      // Check if the game already exists in the selected node
+      const existingGame = await selectedNode.games.findFirst({ where: { AppID } });
+      if (existingGame) {
+        return NextResponse.json({ message: 'Game with the same AppID already exists' }, { status: 409 });
+      }
+  
+      // Create the new game in the selected node
+      const newGame = await selectedNode.games.create({
+        data: {
+          AppID,
+          Name,
+          Price,
+        },
+      });
+  
+      console.log(`Created game in ${node}:`, newGame);
+  
+      // Synchronize creation across all nodes
+      await synchronizeCreationAcrossNodes(newGame);
+  
+      return NextResponse.json({ game: newGame }, { status: 201 });
+  
+    } catch (error) {
+      console.error('Error creating game:', error.message, error.stack);
+      return NextResponse.json({ error: 'Failed to create game' }, { status: 500 });
+    }
+  }
+  
+  async function synchronizeCreationAcrossNodes(game) {
+    const nodes = [main_node, node_1, node_2];
+    
+    for (const node of nodes) {
+      const existingGame = await node.games.findFirst({ where: { AppID: game.AppID } });
+  
+      if (!existingGame) {
+        await node.games.create({
+          data: game,
+        });
+        console.log(`Synchronized creation in ${node.name}:`, game);
+      } else {
+        console.warn(`Game already exists in ${node.name}. Skipping creation.`);
+      }
+    }
+  }
+  
